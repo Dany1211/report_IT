@@ -1,45 +1,58 @@
+// Table.jsx
 import React from "react";
+import { Eye } from "lucide-react";
 
 function Table({ data }) {
   if (!data || data.length === 0) {
-    return <p>No reports available</p>;
+    return <p className="text-center text-gray-500 mt-10">No reports available</p>;
   }
 
   return (
-    <table
-      style={{
-        width: "100%",
-        borderCollapse: "collapse",
-        marginTop: "20px",
-      }}
-    >
-      <thead>
-        <tr style={{ backgroundColor: "#f2f2f2" }}>
-          <th style={cellStyle}>ID</th>
-          <th style={cellStyle}>Issue</th>
-          <th style={cellStyle}>Status</th>
-          <th style={cellStyle}>Location</th>
-        </tr>
-      </thead>
-      <tbody>
-        {data.map((report) => (
-          <tr key={report.id}>
-            <td style={cellStyle}>{report.id}</td>
-            <td style={cellStyle}>{report.issue}</td>
-            <td style={cellStyle}>{report.status}</td>
-            <td style={cellStyle}>{report.location}</td>
+    <div className="overflow-x-auto mt-6">
+      <table className="min-w-full text-sm text-left">
+        <thead className="text-xs text-gray-600 uppercase bg-gray-50">
+          <tr>
+            <th className="px-4 py-3">ID</th>
+            <th className="px-4 py-3">Issue</th>
+            <th className="px-4 py-3">Status</th>
+            <th className="px-4 py-3">Location</th>
+            <th className="px-4 py-3 text-center">Action</th>
           </tr>
-        ))}
-      </tbody>
-    </table>
+        </thead>
+        <tbody className="divide-y divide-gray-200">
+          {data.map((report, index) => (
+            <tr
+              key={report.id}
+              className="bg-white hover:bg-gray-100 transition rounded-md shadow-sm"
+            >
+              <td className="px-4 py-3 whitespace-nowrap font-medium text-gray-800">{report.id}</td>
+              <td className="px-4 py-3">{report.issue}</td>
+              <td className="px-4 py-3">
+                <span
+                  className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                    report.status === "Open"
+                      ? "bg-green-100 text-green-700"
+                      : "bg-yellow-100 text-yellow-700"
+                  }`}
+                >
+                  {report.status}
+                </span>
+              </td>
+              <td className="px-4 py-3">{report.location}</td>
+              <td className="px-4 py-3 text-center">
+                <button
+                  className="p-2 rounded hover:bg-gray-200 text-gray-600"
+                  title="View More"
+                >
+                  <Eye className="w-5 h-5" />
+                </button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 }
-
-// Shared cell styling
-const cellStyle = {
-  border: "1px solid #ccc",
-  padding: "8px",
-  textAlign: "left",
-};
 
 export default Table;
