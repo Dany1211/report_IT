@@ -20,151 +20,150 @@ const assignPriorityByArea = (reports) => {
 
 export default function Reports() {
   const initialReports = [
-   {
-    id: 1,
-    issue: "Pothole on Main Street",
-    description: "Large pothole near the traffic light, causing cars to swerve.",
-    category: "Potholes",
-    area: "Downtown",
-    status: "In Progress",
-    reporter: "John Doe",
-    submittedAt: "2025-09-01",
-    department: "Unassigned",
-    notes: "",
-  },
-  {
-    id: 2,
-    issue: "Streetlight outage",
-    description: "Streetlight not working outside the library, area is dark at night.",
-    category: "Streetlights",
-    area: "Downtown",
-    status: "Open",
-    reporter: "Jane Smith",
-    submittedAt: "2025-09-02",
-    department: "Unassigned",
-    notes: "",
-  },
-  {
-    id: 3,
-    issue: "Overflowing trash bin",
-    description: "Trash bin on 3rd Ave is overflowing, attracting stray dogs.",
-    category: "Trash",
-    area: "Uptown",
-    status: "Resolved",
-    reporter: "Alex Johnson",
-    submittedAt: "2025-09-03",
-    department: "Sanitation",
-    notes: "Cleaned on 2025-09-04",
-  },
-  {
-    id: 4,
-    issue: "Graffiti on bus stop",
-    description: "Graffiti on the bus stop shelter at Elm Street.",
-    category: "Graffiti",
-    area: "Midtown",
-    status: "In Progress",
-    reporter: "Maria Lee",
-    submittedAt: "2025-09-04",
-    department: "Public Works",
-    notes: "",
-  },
-  {
-    id: 5,
-    issue: "Broken park bench",
-    description: "Bench in Central Park has a broken seat, unsafe for use.",
-    category: "Public Property",
-    area: "Central Park",
-    status: "Open",
-    reporter: "David Green",
-    submittedAt: "2025-09-05",
-    department: "Public Works",
-    notes: "",
-  },
-  {
-    id: 6,
-    issue: "Leaking fire hydrant",
-    description: "Water leaking continuously from hydrant on Maple Street.",
-    category: "Utilities",
-    area: "Maple Street",
-    status: "In Progress",
-    reporter: "Sophia Brown",
-    submittedAt: "2025-09-05",
-    department: "Unassigned",
-    notes: "",
-  },
-  {
-    id: 7,
-    issue: "Illegal dumping",
-    description: "Large pile of garbage dumped behind the shopping plaza.",
-    category: "Trash",
-    area: "Industrial Zone",
-    status: "Open",
-    reporter: "Michael Clark",
-    submittedAt: "2025-09-06",
-    department: "Sanitation",
-    notes: "",
-  },
-  {
-    id: 8,
-    issue: "Fallen tree blocking road",
-    description: "Tree blocking traffic near River Road bridge.",
-    category: "Obstruction",
-    area: "River Road",
-    status: "In Progress",
-    reporter: "Emily Davis",
-    submittedAt: "2025-09-06",
-    department: "Public Works",
-    notes: "Team dispatched",
-  },
-  {
-    id: 9,
-    issue: "Flooded sidewalk",
-    description: "Water accumulation due to poor drainage at Pine Avenue.",
-    category: "Drainage",
-    area: "Pine Avenue",
-    status: "Open",
-    reporter: "Chris Evans",
-    submittedAt: "2025-09-07",
-    department: "Unassigned",
-    notes: "",
-  },
-  {
-    id: 10,
-    issue: "Damaged traffic signal",
-    description: "Traffic light not functioning at 5th & Main intersection.",
-    category: "Streetlights",
-    area: "5th Avenue",
-    status: "Resolved",
-    reporter: "Laura White",
-    submittedAt: "2025-09-07",
-    department: "Electrical",
-    notes: "Fixed on 2025-09-08",
-  },
-     {
-    id: 11,
-    issue: "Pothole on Main Street",
-    description: "Large pothole near the traffic light, causing cars to swerve.",
-    category: "Potholes",
-    area: "Downtown",
-    status: "In Progress",
-    reporter: "John Doe",
-    submittedAt: "2025-09-01",
-    department: "Unassigned",
-    notes: "",
-  },
-     {
-    id: 12,
-    issue: "Pothole on Main Street",
-    description: "Large pothole near the traffic light, causing cars to swerve.",
-    category: "Potholes",
-    area: "Downtown",
-    status: "In Progress",
-    reporter: "John Doe",
-    submittedAt: "2025-09-01",
-    department: "Unassigned",
-    notes: "",
-  },
-
+    {
+      id: 1,
+      issue: "Pothole on Main Street",
+      description: "Large pothole near the traffic light, causing cars to swerve.",
+      category: "Potholes",
+      area: "Downtown",
+      status: "In Progress",
+      reporter: "John Doe",
+      submittedAt: "2025-09-01",
+      department: "Unassigned",
+      notes: "",
+    },
+    {
+      id: 2,
+      issue: "Streetlight outage",
+      description: "Streetlight not working outside the library, area is dark at night.",
+      category: "Streetlights",
+      area: "Downtown",
+      status: "Open",
+      reporter: "Jane Smith",
+      submittedAt: "2025-09-02",
+      department: "Unassigned",
+      notes: "",
+    },
+    {
+      id: 3,
+      issue: "Overflowing trash bin",
+      description: "Trash bin on 3rd Ave is overflowing, attracting stray dogs.",
+      category: "Trash",
+      area: "Uptown",
+      status: "Resolved",
+      reporter: "Alex Johnson",
+      submittedAt: "2025-09-03",
+      department: "Sanitation",
+      notes: "Cleaned on 2025-09-04",
+    },
+    {
+      id: 4,
+      issue: "Graffiti on bus stop",
+      description: "Graffiti on the bus stop shelter at Elm Street.",
+      category: "Graffiti",
+      area: "Midtown",
+      status: "In Progress",
+      reporter: "Maria Lee",
+      submittedAt: "2025-09-04",
+      department: "Public Works",
+      notes: "",
+    },
+    {
+      id: 5,
+      issue: "Broken park bench",
+      description: "Bench in Central Park has a broken seat, unsafe for use.",
+      category: "Public Property",
+      area: "Central Park",
+      status: "Open",
+      reporter: "David Green",
+      submittedAt: "2025-09-05",
+      department: "Public Works",
+      notes: "",
+    },
+    {
+      id: 6,
+      issue: "Leaking fire hydrant",
+      description: "Water leaking continuously from hydrant on Maple Street.",
+      category: "Utilities",
+      area: "Maple Street",
+      status: "In Progress",
+      reporter: "Sophia Brown",
+      submittedAt: "2025-09-05",
+      department: "Unassigned",
+      notes: "",
+    },
+    {
+      id: 7,
+      issue: "Illegal dumping",
+      description: "Large pile of garbage dumped behind the shopping plaza.",
+      category: "Trash",
+      area: "Industrial Zone",
+      status: "Open",
+      reporter: "Michael Clark",
+      submittedAt: "2025-09-06",
+      department: "Sanitation",
+      notes: "",
+    },
+    {
+      id: 8,
+      issue: "Fallen tree blocking road",
+      description: "Tree blocking traffic near River Road bridge.",
+      category: "Obstruction",
+      area: "River Road",
+      status: "In Progress",
+      reporter: "Emily Davis",
+      submittedAt: "2025-09-06",
+      department: "Public Works",
+      notes: "Team dispatched",
+    },
+    {
+      id: 9,
+      issue: "Flooded sidewalk",
+      description: "Water accumulation due to poor drainage at Pine Avenue.",
+      category: "Drainage",
+      area: "Pine Avenue",
+      status: "Open",
+      reporter: "Chris Evans",
+      submittedAt: "2025-09-07",
+      department: "Unassigned",
+      notes: "",
+    },
+    {
+      id: 10,
+      issue: "Damaged traffic signal",
+      description: "Traffic light not functioning at 5th & Main intersection.",
+      category: "Streetlights",
+      area: "5th Avenue",
+      status: "Resolved",
+      reporter: "Laura White",
+      submittedAt: "2025-09-07",
+      department: "Electrical",
+      notes: "Fixed on 2025-09-08",
+    },
+    {
+      id: 11,
+      issue: "Pothole on Main Street",
+      description: "Large pothole near the traffic light, causing cars to swerve.",
+      category: "Potholes",
+      area: "Downtown",
+      status: "In Progress",
+      reporter: "John Doe",
+      submittedAt: "2025-09-01",
+      department: "Unassigned",
+      notes: "",
+    },
+    {
+      id: 12,
+      issue: "Pothole on Main Street",
+      description: "Large pothole near the traffic light, causing cars to swerve.",
+      category: "Potholes",
+      area: "Downtown",
+      status: "In Progress",
+      reporter: "John Doe",
+      submittedAt: "2025-09-01",
+      department: "Unassigned",
+      notes: "",
+    },
   ];
 
   const [reports, setReports] = useState(assignPriorityByArea(initialReports));
@@ -185,7 +184,7 @@ export default function Reports() {
       (categoryFilter === "All" || report.category === categoryFilter) &&
       (priorityFilter === "All" || report.priority === priorityFilter) &&
       (searchQuery === "" ||
-        report.issue.toLowerCase().includes(searchQuery.toLowerCase()))
+        report.area.toLowerCase().includes(searchQuery.toLowerCase())) // <-- The change is here
     );
   });
 
@@ -266,7 +265,7 @@ export default function Reports() {
 
         <input
           type="text"
-          placeholder="Search issues..."
+          placeholder="Search by area..." // <-- The change is here
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="border rounded-lg p-2 flex-1 min-w-[200px] bg-white shadow-sm"
@@ -333,14 +332,30 @@ export default function Reports() {
               Report Details
             </h2>
             <div className="space-y-2 text-[#555]">
-              <p><strong>ID:</strong> {selectedReport.id}</p>
-              <p><strong>Issue:</strong> {selectedReport.issue}</p>
-              <p><strong>Description:</strong> {selectedReport.description}</p>
-              <p><strong>Category:</strong> {selectedReport.category}</p>
-              <p><strong>Area:</strong> {selectedReport.area}</p>
-              <p><strong>Priority:</strong> {selectedReport.priority}</p>
-              <p><strong>Reporter:</strong> {selectedReport.reporter}</p>
-              <p><strong>Submitted At:</strong> {selectedReport.submittedAt}</p>
+              <p>
+                <strong>ID:</strong> {selectedReport.id}
+              </p>
+              <p>
+                <strong>Issue:</strong> {selectedReport.issue}
+              </p>
+              <p>
+                <strong>Description:</strong> {selectedReport.description}
+              </p>
+              <p>
+                <strong>Category:</strong> {selectedReport.category}
+              </p>
+              <p>
+                <strong>Area:</strong> {selectedReport.area}
+              </p>
+              <p>
+                <strong>Priority:</strong> {selectedReport.priority}
+              </p>
+              <p>
+                <strong>Reporter:</strong> {selectedReport.reporter}
+              </p>
+              <p>
+                <strong>Submitted At:</strong> {selectedReport.submittedAt}
+              </p>
               <p>
                 <strong>Status:</strong>{" "}
                 <span className={getStatusStyle(selectedReport.status)}>
@@ -352,7 +367,9 @@ export default function Reports() {
             {/* Admin Actions */}
             <div className="mt-4 space-y-4">
               <div>
-                <label className="block font-semibold mb-1">Update Status</label>
+                <label className="block font-semibold mb-1">
+                  Update Status
+                </label>
                 <select
                   value={selectedReport.status}
                   onChange={(e) =>
@@ -367,7 +384,9 @@ export default function Reports() {
               </div>
 
               <div>
-                <label className="block font-semibold mb-1">Assign Department</label>
+                <label className="block font-semibold mb-1">
+                  Assign Department
+                </label>
                 <select
                   value={selectedReport.department}
                   onChange={(e) =>
