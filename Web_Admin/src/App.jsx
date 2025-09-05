@@ -4,6 +4,8 @@ import Home from "./pages/Home"
 import Analytics from "./pages/Analytics"
 import Settings from "./pages/Settings"
 
+
+
 export default function App() {
   return (
     <BrowserRouter>
