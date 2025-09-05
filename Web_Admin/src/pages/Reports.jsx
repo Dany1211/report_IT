@@ -1,19 +1,186 @@
 import { useState } from "react";
 
+// Function to auto-assign priority based on number of reports in an area
+const assignPriorityByArea = (reports) => {
+  const areaCount = {};
+  reports.forEach((r) => {
+    areaCount[r.area] = (areaCount[r.area] || 0) + 1;
+  });
+
+  return reports.map((r) => {
+    let priority = "Low";
+    if (areaCount[r.area] >= 5) {
+      priority = "High";
+    } else if (areaCount[r.area] >= 3) {
+      priority = "Medium";
+    }
+    return { ...r, priority };
+  });
+};
+
 export default function Reports() {
-  const mockReports = [
-    { id: 1, issue: "Pothole on Main Street", category: "Potholes", priority: "High", status: "In Progress" },
-    { id: 2, issue: "Streetlight outage", category: "Streetlights", priority: "Medium", status: "Open" },
-    { id: 3, issue: "Overflowing trash bin", category: "Trash", priority: "Low", status: "Resolved" },
-    { id: 4, issue: "Graffiti on bus stop", category: "Graffiti", priority: "Medium", status: "In Progress" },
+  const initialReports = [
+   {
+    id: 1,
+    issue: "Pothole on Main Street",
+    description: "Large pothole near the traffic light, causing cars to swerve.",
+    category: "Potholes",
+    area: "Downtown",
+    status: "In Progress",
+    reporter: "John Doe",
+    submittedAt: "2025-09-01",
+    department: "Unassigned",
+    notes: "",
+  },
+  {
+    id: 2,
+    issue: "Streetlight outage",
+    description: "Streetlight not working outside the library, area is dark at night.",
+    category: "Streetlights",
+    area: "Downtown",
+    status: "Open",
+    reporter: "Jane Smith",
+    submittedAt: "2025-09-02",
+    department: "Unassigned",
+    notes: "",
+  },
+  {
+    id: 3,
+    issue: "Overflowing trash bin",
+    description: "Trash bin on 3rd Ave is overflowing, attracting stray dogs.",
+    category: "Trash",
+    area: "Uptown",
+    status: "Resolved",
+    reporter: "Alex Johnson",
+    submittedAt: "2025-09-03",
+    department: "Sanitation",
+    notes: "Cleaned on 2025-09-04",
+  },
+  {
+    id: 4,
+    issue: "Graffiti on bus stop",
+    description: "Graffiti on the bus stop shelter at Elm Street.",
+    category: "Graffiti",
+    area: "Midtown",
+    status: "In Progress",
+    reporter: "Maria Lee",
+    submittedAt: "2025-09-04",
+    department: "Public Works",
+    notes: "",
+  },
+  {
+    id: 5,
+    issue: "Broken park bench",
+    description: "Bench in Central Park has a broken seat, unsafe for use.",
+    category: "Public Property",
+    area: "Central Park",
+    status: "Open",
+    reporter: "David Green",
+    submittedAt: "2025-09-05",
+    department: "Public Works",
+    notes: "",
+  },
+  {
+    id: 6,
+    issue: "Leaking fire hydrant",
+    description: "Water leaking continuously from hydrant on Maple Street.",
+    category: "Utilities",
+    area: "Maple Street",
+    status: "In Progress",
+    reporter: "Sophia Brown",
+    submittedAt: "2025-09-05",
+    department: "Unassigned",
+    notes: "",
+  },
+  {
+    id: 7,
+    issue: "Illegal dumping",
+    description: "Large pile of garbage dumped behind the shopping plaza.",
+    category: "Trash",
+    area: "Industrial Zone",
+    status: "Open",
+    reporter: "Michael Clark",
+    submittedAt: "2025-09-06",
+    department: "Sanitation",
+    notes: "",
+  },
+  {
+    id: 8,
+    issue: "Fallen tree blocking road",
+    description: "Tree blocking traffic near River Road bridge.",
+    category: "Obstruction",
+    area: "River Road",
+    status: "In Progress",
+    reporter: "Emily Davis",
+    submittedAt: "2025-09-06",
+    department: "Public Works",
+    notes: "Team dispatched",
+  },
+  {
+    id: 9,
+    issue: "Flooded sidewalk",
+    description: "Water accumulation due to poor drainage at Pine Avenue.",
+    category: "Drainage",
+    area: "Pine Avenue",
+    status: "Open",
+    reporter: "Chris Evans",
+    submittedAt: "2025-09-07",
+    department: "Unassigned",
+    notes: "",
+  },
+  {
+    id: 10,
+    issue: "Damaged traffic signal",
+    description: "Traffic light not functioning at 5th & Main intersection.",
+    category: "Streetlights",
+    area: "5th Avenue",
+    status: "Resolved",
+    reporter: "Laura White",
+    submittedAt: "2025-09-07",
+    department: "Electrical",
+    notes: "Fixed on 2025-09-08",
+  },
+     {
+    id: 11,
+    issue: "Pothole on Main Street",
+    description: "Large pothole near the traffic light, causing cars to swerve.",
+    category: "Potholes",
+    area: "Downtown",
+    status: "In Progress",
+    reporter: "John Doe",
+    submittedAt: "2025-09-01",
+    department: "Unassigned",
+    notes: "",
+  },
+     {
+    id: 12,
+    issue: "Pothole on Main Street",
+    description: "Large pothole near the traffic light, causing cars to swerve.",
+    category: "Potholes",
+    area: "Downtown",
+    status: "In Progress",
+    reporter: "John Doe",
+    submittedAt: "2025-09-01",
+    department: "Unassigned",
+    notes: "",
+  },
+
   ];
 
+  const [reports, setReports] = useState(assignPriorityByArea(initialReports));
   const [categoryFilter, setCategoryFilter] = useState("All");
   const [priorityFilter, setPriorityFilter] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedReport, setSelectedReport] = useState(null);
 
-  const filteredReports = mockReports.filter((report) => {
+  // Dashboard stats
+  const totalReports = reports.length;
+  const openReports = reports.filter((r) => r.status === "Open").length;
+  const inProgressReports = reports.filter((r) => r.status === "In Progress").length;
+  const resolvedReports = reports.filter((r) => r.status === "Resolved").length;
+
+  // Filter reports
+  const filteredReports = reports.filter((report) => {
     return (
       (categoryFilter === "All" || report.category === categoryFilter) &&
       (priorityFilter === "All" || report.priority === priorityFilter) &&
@@ -22,6 +189,7 @@ export default function Reports() {
     );
   });
 
+  // Status badge styles
   const getStatusStyle = (status) => {
     switch (status) {
       case "Resolved":
@@ -35,9 +203,41 @@ export default function Reports() {
     }
   };
 
+  // Save updates from modal
+  const handleSaveChanges = () => {
+    const updatedReports = reports.map((r) =>
+      r.id === selectedReport.id ? { ...selectedReport } : r
+    );
+    setReports(assignPriorityByArea(updatedReports));
+    setSelectedReport(null);
+  };
+
   return (
-    <div className="min-h-screen p-6" style={{ background: "linear-gradient(to bottom, #FFF9F0, #FFF1C6)" }}>
+    <div
+      className="min-h-screen p-6"
+      style={{ background: "linear-gradient(to bottom, #FFF9F0, #FFF1C6)" }}
+    >
       <h1 className="text-3xl font-bold mb-6 text-[#333333]">Reports</h1>
+
+      {/* Dashboard Summary */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <div className="bg-white p-4 rounded-xl shadow">
+          <h3 className="text-lg font-semibold">Total Reports</h3>
+          <p className="text-2xl font-bold text-[#333]">{totalReports}</p>
+        </div>
+        <div className="bg-white p-4 rounded-xl shadow">
+          <h3 className="text-lg font-semibold">Open</h3>
+          <p className="text-2xl font-bold text-[#FF4500]">{openReports}</p>
+        </div>
+        <div className="bg-white p-4 rounded-xl shadow">
+          <h3 className="text-lg font-semibold">In Progress</h3>
+          <p className="text-2xl font-bold text-[#FFB347]">{inProgressReports}</p>
+        </div>
+        <div className="bg-white p-4 rounded-xl shadow">
+          <h3 className="text-lg font-semibold">Resolved</h3>
+          <p className="text-2xl font-bold text-[#32CD32]">{resolvedReports}</p>
+        </div>
+      </div>
 
       {/* Filters + Search */}
       <div className="flex flex-wrap gap-4 mb-6">
@@ -64,7 +264,6 @@ export default function Reports() {
           <option value="Low">Low</option>
         </select>
 
-        {/* Optional search bar */}
         <input
           type="text"
           placeholder="Search issues..."
@@ -82,6 +281,7 @@ export default function Reports() {
               <th className="p-3">ID</th>
               <th className="p-3">Issue</th>
               <th className="p-3">Category</th>
+              <th className="p-3">Area</th>
               <th className="p-3">Priority</th>
               <th className="p-3">Status</th>
               <th className="p-3 text-center">Action</th>
@@ -90,13 +290,19 @@ export default function Reports() {
           <tbody>
             {filteredReports.length > 0 ? (
               filteredReports.map((report) => (
-                <tr key={report.id} className="border-t hover:bg-[#FFF9F0] transition">
+                <tr
+                  key={report.id}
+                  className="border-t hover:bg-[#FFF9F0] transition"
+                >
                   <td className="p-3">{report.id}</td>
                   <td className="p-3">{report.issue}</td>
                   <td className="p-3">{report.category}</td>
+                  <td className="p-3">{report.area}</td>
                   <td className="p-3">{report.priority}</td>
                   <td className="p-3">
-                    <span className={getStatusStyle(report.status)}>{report.status}</span>
+                    <span className={getStatusStyle(report.status)}>
+                      {report.status}
+                    </span>
                   </td>
                   <td className="p-3 text-center">
                     <button
@@ -110,7 +316,7 @@ export default function Reports() {
               ))
             ) : (
               <tr>
-                <td colSpan="6" className="p-4 text-center text-gray-500">
+                <td colSpan="7" className="p-4 text-center text-gray-500">
                   No reports found.
                 </td>
               </tr>
@@ -122,13 +328,19 @@ export default function Reports() {
       {/* Modal */}
       {selectedReport && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl shadow-xl p-6 max-w-md w-full animate-fadeIn">
-            <h2 className="text-xl font-bold mb-4 text-[#333]">Report Details</h2>
+          <div className="bg-white rounded-2xl shadow-xl p-6 max-w-lg w-full animate-fadeIn">
+            <h2 className="text-xl font-bold mb-4 text-[#333]">
+              Report Details
+            </h2>
             <div className="space-y-2 text-[#555]">
               <p><strong>ID:</strong> {selectedReport.id}</p>
               <p><strong>Issue:</strong> {selectedReport.issue}</p>
+              <p><strong>Description:</strong> {selectedReport.description}</p>
               <p><strong>Category:</strong> {selectedReport.category}</p>
+              <p><strong>Area:</strong> {selectedReport.area}</p>
               <p><strong>Priority:</strong> {selectedReport.priority}</p>
+              <p><strong>Reporter:</strong> {selectedReport.reporter}</p>
+              <p><strong>Submitted At:</strong> {selectedReport.submittedAt}</p>
               <p>
                 <strong>Status:</strong>{" "}
                 <span className={getStatusStyle(selectedReport.status)}>
@@ -137,12 +349,65 @@ export default function Reports() {
               </p>
             </div>
 
-            <div className="mt-6 text-right">
+            {/* Admin Actions */}
+            <div className="mt-4 space-y-4">
+              <div>
+                <label className="block font-semibold mb-1">Update Status</label>
+                <select
+                  value={selectedReport.status}
+                  onChange={(e) =>
+                    setSelectedReport({ ...selectedReport, status: e.target.value })
+                  }
+                  className="border rounded-lg p-2 w-full"
+                >
+                  <option value="Open">Open</option>
+                  <option value="In Progress">In Progress</option>
+                  <option value="Resolved">Resolved</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block font-semibold mb-1">Assign Department</label>
+                <select
+                  value={selectedReport.department}
+                  onChange={(e) =>
+                    setSelectedReport({ ...selectedReport, department: e.target.value })
+                  }
+                  className="border rounded-lg p-2 w-full"
+                >
+                  <option value="Unassigned">Unassigned</option>
+                  <option value="Public Works">Public Works</option>
+                  <option value="Sanitation">Sanitation</option>
+                  <option value="Electrical">Electrical</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block font-semibold mb-1">Notes</label>
+                <textarea
+                  value={selectedReport.notes}
+                  onChange={(e) =>
+                    setSelectedReport({ ...selectedReport, notes: e.target.value })
+                  }
+                  className="border rounded-lg p-2 w-full"
+                  rows="3"
+                  placeholder="Add remarks or update notes..."
+                />
+              </div>
+            </div>
+
+            <div className="mt-6 flex justify-end gap-3">
               <button
                 onClick={() => setSelectedReport(null)}
+                className="bg-gray-300 hover:bg-gray-400 text-black px-4 py-2 rounded-xl shadow"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSaveChanges}
                 className="bg-[#FFA500] hover:bg-[#e59400] text-white px-4 py-2 rounded-xl shadow"
               >
-                Close
+                Save Changes
               </button>
             </div>
           </div>
