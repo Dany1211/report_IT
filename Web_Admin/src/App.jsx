@@ -1,12 +1,19 @@
-function App() {
+import { BrowserRouter, Routes, Route } from "react-router-dom"
+import DashboardLayout from "./layouts/DashboardLayout"
+import Home from "./pages/Home"
+import Analytics from "./pages/Analytics"
+import Settings from "./pages/Settings"
+
+export default function App() {
   return (
-    <div className="h-screen flex items-center justify-center bg-black">
-      <h1 className="text-5xl font-bold text-green-400">
-        Tailwind is working 🎉
-      </h1>
-    </div>
+    <BrowserRouter>
+      <DashboardLayout>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/analytics" element={<Analytics />} />
+          <Route path="/settings" element={<Settings />} />
+        </Routes>
+      </DashboardLayout>
+    </BrowserRouter>
   )
 }
-
-
-export default App
