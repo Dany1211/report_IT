@@ -45,9 +45,9 @@ export default function DashboardLayout() {
           <li>
             <NavLink to="/analytics" className="hover:text-yellow-300">Analytics</NavLink>
           </li>
-          <li>
+          {/* <li>
             <NavLink to="/Reports" className="hover:text-yellow-300">Reports</NavLink>
-          </li>
+          </li> */}
           <li>
             <NavLink to="/settings" className="hover:text-yellow-300">Settings</NavLink>
           </li>
