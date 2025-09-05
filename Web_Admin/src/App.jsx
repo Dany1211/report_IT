@@ -54,6 +54,7 @@ import Analytics from "./pages/Analytics";
 // import Notifications from "./pages/Notifications";
 import Settings from "./pages/Settings";
 import LoginPage from "./pages/LoginPage";
+import Reports from "./pages/Reports";
 
 export default function App() {
   return (
@@ -68,6 +69,7 @@ export default function App() {
           <Route path="/analytics" element={<Analytics />} />
           {/* <Route path="/notifications" element={<Notifications />} /> */}
           <Route path="/settings" element={<Settings />} />
+          <Route path="/Reports" element={<Reports />} />
         </Route>
       </Routes>
     </BrowserRouter>
