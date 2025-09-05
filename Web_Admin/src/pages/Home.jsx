@@ -1,4 +1,4 @@
-import StatCard from "../components/StateCArd";
+import StatCard from "../components/StateCard";
 import Table from "../components/Tables"; // Correctly import the Tables component
 import { AlertCircle, CheckCircle, Clock, Flame } from "lucide-react";
 
