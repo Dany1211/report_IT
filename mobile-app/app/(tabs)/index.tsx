@@ -376,7 +376,7 @@ const styles = StyleSheet.create({
   },
   nearbyReportsContainer: {
     paddingHorizontal: 20,
-    marginBottom: 30,
+    marginBottom: 100,
   },
   reportCard: {
     backgroundColor: '#FFFFFF',
