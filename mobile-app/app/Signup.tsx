@@ -14,17 +14,21 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
-import { supabase } from "../supabaseClient"; // Make sure this points to mobile-app/supabaseClient.ts
+import { supabase } from "../supabaseClient";
+import { Ionicons } from "@expo/vector-icons";
 
 export default function SignupScreen() {
   const router = useRouter();
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const handleSignup = async () => {
-    if (!email || !password || !confirmPassword) {
+    if (!name || !email || !password || !confirmPassword) {
       Alert.alert("Error", "Please fill all fields.");
       return;
     }
@@ -32,33 +36,37 @@ export default function SignupScreen() {
       Alert.alert("Error", "Passwords do not match.");
       return;
     }
-  
+
     try {
       setLoading(true);
-  
+
       // 1️⃣ Sign up user
-      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-        email,
-        password,
-      });
-  
+      const { data: signUpData, error: signUpError } =
+        await supabase.auth.signUp({
+          email,
+          password,
+        });
+
       if (signUpError) {
         Alert.alert("Signup Error", signUpError.message);
         return;
       }
-  
-      // 2️⃣ Insert into profiles table
-      const { error: profileError } = await supabase
-        .from("profiles")
-        .insert([
-          { id: signUpData.user?.id, email: email, role: "user" },
-        ]);
-  
+
+      // 2️⃣ Insert into profiles table (name included)
+      const { error: profileError } = await supabase.from("profiles").insert([
+        {
+          id: signUpData.user?.id,
+          email: email,
+          name: name,
+          role: "user",
+        },
+      ]);
+
       if (profileError) {
         Alert.alert("Profile Error", profileError.message);
         return;
       }
-  
+
       Alert.alert(
         "Success",
         "Signup successful! Please check your email for verification."
@@ -70,7 +78,7 @@ export default function SignupScreen() {
       setLoading(false);
     }
   };
-  
+
   return (
     <KeyboardAvoidingView
       style={{ flex: 1 }}
@@ -84,7 +92,9 @@ export default function SignupScreen() {
           {/* Header */}
           <View style={styles.header}>
             <Image
-              source={{ uri: "https://placehold.co/80x80/FFA500/FFFFFF?text=Logo" }}
+              source={{
+                uri: "https://placehold.co/80x80/FFA500/FFFFFF?text=Logo",
+              }}
               style={styles.logo}
             />
             <Text style={styles.title}>Create Account</Text>
@@ -94,10 +104,20 @@ export default function SignupScreen() {
           {/* Signup Card */}
           <View style={styles.card}>
             <Text style={styles.welcome}>Get Started</Text>
-            <Text style={styles.cardSubtitle}>Sign up to start reporting issues</Text>
+            <Text style={styles.cardSubtitle}>
+              Sign up to start reporting issues
+            </Text>
 
             {/* Form */}
             <View style={styles.form}>
+              <TextInput
+                style={styles.input}
+                placeholder="Full Name"
+                placeholderTextColor="#888"
+                value={name}
+                onChangeText={setName}
+              />
+
               <TextInput
                 style={styles.input}
                 placeholder="Email"
@@ -106,22 +126,50 @@ export default function SignupScreen() {
                 value={email}
                 onChangeText={setEmail}
               />
-              <TextInput
-                style={styles.input}
-                placeholder="Password"
-                placeholderTextColor="#888"
-                secureTextEntry
-                value={password}
-                onChangeText={setPassword}
-              />
-              <TextInput
-                style={styles.input}
-                placeholder="Confirm Password"
-                placeholderTextColor="#888"
-                secureTextEntry
-                value={confirmPassword}
-                onChangeText={setConfirmPassword}
-              />
+
+              {/* Password Field */}
+              <View style={styles.passwordContainer}>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Password"
+                  placeholderTextColor="#888"
+                  secureTextEntry={!showPassword}
+                  value={password}
+                  onChangeText={setPassword}
+                />
+                <TouchableOpacity
+                  onPress={() => setShowPassword(!showPassword)}
+                  style={styles.eyeButton}
+                >
+                  <Ionicons
+                    name={showPassword ? "eye" : "eye-off"}
+                    size={22}
+                    color="#888"
+                  />
+                </TouchableOpacity>
+              </View>
+
+              {/* Confirm Password Field */}
+              <View style={styles.passwordContainer}>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Confirm Password"
+                  placeholderTextColor="#888"
+                  secureTextEntry={!showConfirmPassword}
+                  value={confirmPassword}
+                  onChangeText={setConfirmPassword}
+                />
+                <TouchableOpacity
+                  onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+                  style={styles.eyeButton}
+                >
+                  <Ionicons
+                    name={showConfirmPassword ? "eye" : "eye-off"}
+                    size={22}
+                    color="#888"
+                  />
+                </TouchableOpacity>
+              </View>
 
               <TouchableOpacity style={styles.button} onPress={handleSignup}>
                 {loading ? (
@@ -139,9 +187,11 @@ export default function SignupScreen() {
 
           {/* Footer */}
           <View style={styles.footer}>
-            <Text style={styles.footerText}>By signing up, you agree to our</Text>
+            <Text style={styles.footerText}>
+              By signing up, you agree to our
+            </Text>
             <TouchableOpacity>
-              <Text style={styles.footerLink}>Terms & Privacy Policy</Text>
+              <Text style={styles.footerLink}> Terms & Privacy Policy</Text>
             </TouchableOpacity>
           </View>
         </ScrollView>
@@ -152,7 +202,6 @@ export default function SignupScreen() {
 
 // Theme colors
 const COLORS = {
-  backgroundGradient: ["#FFF9F0", "#FFF1C6"],
   card: "#FFFFFF",
   primary: "#FFA500",
   textHeader: "#333333",
@@ -221,6 +270,18 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     borderWidth: 1,
     borderColor: "#ddd",
+    paddingRight: 40, // leave space for eye button
+  },
+  passwordContainer: {
+    position: "relative",
+    width: "100%",
+    marginBottom: 15,
+  },
+  eyeButton: {
+    position: "absolute",
+    right: 12,
+    top: "50%",
+    transform: [{ translateY: -16 }],
   },
   button: {
     backgroundColor: COLORS.primary,

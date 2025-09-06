@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -14,7 +14,7 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
-import { supabase } from "../supabaseClient"; // Make sure your supabaseClient is setup
+import { supabase } from "../supabaseClient"; 
 import { Ionicons } from "@expo/vector-icons";
 import { Linking } from "react-native";
 
@@ -24,6 +24,22 @@ export default function LoginScreen() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+
+  // ✅ Auto-login if session exists
+  useEffect(() => {
+    const checkSession = async () => {
+      const { data, error } = await supabase.auth.getSession();
+      if (error) {
+        console.log("Session error:", error.message);
+        return;
+      }
+      if (data.session) {
+        // User already logged in
+        router.replace("/(tabs)");
+      }
+    };
+    checkSession();
+  }, []);
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -58,13 +74,14 @@ export default function LoginScreen() {
           [
             {
               text: "Open Portal",
-              onPress: () => Linking.openURL("https://your-admin-portal.com"), // <-- replace with your admin portal URL
+              onPress: () =>
+                Linking.openURL("https://your-admin-portal.com"), // change this
             },
             { text: "OK", style: "cancel" },
           ]
         );
       } else {
-        // normal user
+        // ✅ User stays logged in (session is persisted automatically)
         router.replace("/(tabs)");
       }
     } catch (err: any) {
@@ -87,10 +104,9 @@ export default function LoginScreen() {
           {/* Header */}
           <View style={styles.header}>
             <Image
-              source={require("../assets/images/splash-icon.png")}
+              source={require("../assets/images/logo.png")}
               style={styles.logo}
             />
-            <Text style={styles.title}>ReportIT</Text>
             <Text style={styles.subtitle}>Your City. Your Voice.</Text>
           </View>
 
@@ -112,9 +128,10 @@ export default function LoginScreen() {
                 onChangeText={setEmail}
               />
 
+              {/* Password with Eye Button */}
               <View style={styles.passwordContainer}>
                 <TextInput
-                  style={[styles.input, { flex: 1 }]}
+                  style={styles.input}
                   placeholder="Password"
                   placeholderTextColor="#888"
                   secureTextEntry={!showPassword}
@@ -127,7 +144,7 @@ export default function LoginScreen() {
                 >
                   <Ionicons
                     name={showPassword ? "eye" : "eye-off"}
-                    size={24}
+                    size={20}
                     color="#888"
                   />
                 </TouchableOpacity>
@@ -184,8 +201,7 @@ const styles = StyleSheet.create({
     paddingBottom: 30,
   },
   header: { alignItems: "center", marginBottom: 20 },
-  logo: { width: 80, height: 80, marginBottom: 12 },
-  title: { fontSize: 28, fontWeight: "700", color: COLORS.textHeader },
+  logo: { width: 200, height: 200, marginBottom: 12 },
   subtitle: { fontSize: 14, color: COLORS.textSub, marginTop: 4 },
   card: {
     backgroundColor: COLORS.card,
@@ -211,6 +227,11 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   form: { marginBottom: 10 },
+
+  passwordContainer: {
+    position: "relative",
+    width: "100%",
+  },
   input: {
     backgroundColor: "#fff",
     padding: 12,
@@ -218,9 +239,15 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     borderWidth: 1,
     borderColor: "#ddd",
+    paddingRight: 40, // leave space for eye icon
   },
-  passwordContainer: { flexDirection: "row", alignItems: "center" },
-  eyeButton: { padding: 8 },
+  eyeButton: {
+    position: "absolute",
+    right: 12,
+    top: "50%",
+    transform: [{ translateY: -16 }],
+  },
+
   button: {
     backgroundColor: COLORS.primary,
     paddingVertical: 14,
