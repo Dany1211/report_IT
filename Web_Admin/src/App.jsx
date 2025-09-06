@@ -54,7 +54,6 @@ import Analytics from "./pages/Analytics";
 // import Notifications from "./pages/Notifications";
 import Settings from "./pages/Settings";
 import LoginPage from "./pages/LoginPage";
-import SignUpPage from "./pages/SignUpPage"; // ✅ import signup page
 import Reports from "./pages/Reports";
 import Exporting from "./pages/Exporting";
 
@@ -64,7 +63,6 @@ export default function App() {
       <Routes>
         {/* Public Auth Routes (outside dashboard layout) */}
         <Route path="/login" element={<LoginPage />} />
-        <Route path="/signup" element={<SignUpPage />} /> {/* ✅ signup route */}
 
         {/* Dashboard Layout (protected pages) */}
         <Route element={<DashboardLayout />}>
