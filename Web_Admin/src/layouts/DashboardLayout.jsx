@@ -49,6 +49,9 @@ export default function DashboardLayout() {
             <NavLink to="/Reports" className="hover:text-yellow-300">Reports</NavLink>
           </li>
           <li>
+            <NavLink to="/exporting" className="hover:text-yellow-300">Exporting</NavLink>
+          </li>
+          <li>
             <NavLink to="/settings" className="hover:text-yellow-300">Settings</NavLink>
           </li>
         </ul>
