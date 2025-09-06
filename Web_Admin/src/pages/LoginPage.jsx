@@ -279,9 +279,9 @@ const LoginPage = () => {
       <div className="w-full max-w-4xl bg-white shadow-xl rounded-2xl overflow-hidden flex">
         
         {/* Left side - Image */}
-        <div className="hidden md:flex w-1/2 bg-gradient-to-br from-[#FFD580] to-[#FF9C73] items-center justify-center p-6">
+        <div className="hidden md:flex w-1/2 bg-gradient-to-br from-[#c8c0ae] to-[#ffffff] items-center justify-center p-6">
           <img
-            src="/login-illustration.png"
+            src="./logo.png" // 👉 put your image inside public/ folder
             alt="Login Illustration"
             className="w-4/5 h-auto rounded-xl shadow-lg"
           />
