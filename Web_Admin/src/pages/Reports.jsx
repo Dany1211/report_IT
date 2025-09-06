@@ -168,15 +168,16 @@ export default function Reports() {
   const getStatusStyle = (status) => {
     switch (status) {
       case "Resolved":
-        return "bg-[#32CD32] text-white px-2 py-1 rounded-lg text-sm";
+        return "bg-[#32CD32]/10 text-[#32CD32] px-2 py-1 rounded-lg text-sm";
       case "In Progress":
-        return "bg-[#FFB347] text-[#333] px-2 py-1 rounded-lg text-sm";
+        return "bg-[#FFB347]/10 text-[#FFB347] px-2 py-1 rounded-lg text-sm";
       case "Pending":
-        return "bg-[#FF4500] text-white px-2 py-1 rounded-lg text-sm";
+        return "bg-[#FF4500]/10 text-[#FF4500] px-2 py-1 rounded-lg text-sm";
       default:
         return "px-2 py-1 rounded-lg text-sm";
     }
   };
+
 
   // Save updates from modal
   const handleSaveChanges = () => {
@@ -365,53 +366,53 @@ export default function Reports() {
               {/* Photo Upload - only for In Progress or Resolved */}
               {(selectedReport.status === "In Progress" ||
                 selectedReport.status === "Resolved") && (
-                <div>
-                  <label className="block font-semibold mb-1">Upload Photo</label>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => {
-                      const file = e.target.files[0];
-                      if (file) {
-                        const reader = new FileReader();
-                        reader.onloadend = () => {
-                          setSelectedReport({
-                            ...selectedReport,
-                            photo: reader.result,
-                          });
-                        };
-                        reader.readAsDataURL(file);
-                      }
-                    }}
-                    className="border rounded-lg p-2 w-full"
-                  />
+                  <div>
+                    <label className="block font-semibold mb-1">Upload Photo</label>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        const file = e.target.files[0];
+                        if (file) {
+                          const reader = new FileReader();
+                          reader.onloadend = () => {
+                            setSelectedReport({
+                              ...selectedReport,
+                              photo: reader.result,
+                            });
+                          };
+                          reader.readAsDataURL(file);
+                        }
+                      }}
+                      className="border rounded-lg p-2 w-full"
+                    />
 
-                  {selectedReport.photo && (
-                    <div className="mt-2">
-                      <p className="text-sm font-medium mb-1">Preview:</p>
-                      <img
-                        src={selectedReport.photo}
-                        alt="Uploaded preview"
-                        className="w-40 h-32 object-cover rounded-lg border"
-                      />
-                    </div>
-                  )}
-                </div>
-              )}
+                    {selectedReport.photo && (
+                      <div className="mt-2">
+                        <p className="text-sm font-medium mb-1">Preview:</p>
+                        <img
+                          src={selectedReport.photo}
+                          alt="Uploaded preview"
+                          className="w-40 h-32 object-cover rounded-lg border"
+                        />
+                      </div>
+                    )}
+                  </div>
+                )}
             </div>
 
-              <div>
-                <label className="block font-semibold mb-1">Notes</label>
-                <textarea
-                  value={selectedReport.notes}
-                  onChange={(e) =>
-                    setSelectedReport({ ...selectedReport, notes: e.target.value })
-                  }
-                  className="border rounded-lg p-2 w-full"
-                  rows="3"
-                  placeholder="Add remarks or update notes..."
-                />
-              </div>
+            <div>
+              <label className="block font-semibold mb-1">Notes</label>
+              <textarea
+                value={selectedReport.notes}
+                onChange={(e) =>
+                  setSelectedReport({ ...selectedReport, notes: e.target.value })
+                }
+                className="border rounded-lg p-2 w-full"
+                rows="3"
+                placeholder="Add remarks or update notes..."
+              />
+            </div>
 
             <div className="mt-6 flex justify-end gap-3">
               <button
