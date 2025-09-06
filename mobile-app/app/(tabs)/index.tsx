@@ -12,6 +12,8 @@ import {
   Dimensions,
   StatusBar,
   FlatList,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as ImagePicker from 'expo-image-picker';
@@ -44,13 +46,16 @@ const HomeScreen: React.FC = () => {
   const [detailModalVisible, setDetailModalVisible] = useState(false);
   const [notificationModalVisible, setNotificationModalVisible] = useState(false);
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
-  
+
   const [issueType, setIssueType] = useState('');
   const [description, setDescription] = useState('');
   const [urgency, setUrgency] = useState<'low' | 'medium' | 'high'>('medium');
   const [selectedImages, setSelectedImages] = useState<string[]>([]);
   const [location, setLocation] = useState('');
   const [isAutoLocation, setIsAutoLocation] = useState(true);
+  
+  // New State for Loading Animation
+  const [isLocating, setIsLocating] = useState(false); 
 
   // Placeholder data
   const statsData = {
@@ -126,6 +131,12 @@ const HomeScreen: React.FC = () => {
   ];
 
   const pickImages = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permission denied', 'Sorry, we need camera roll permissions to make this work!');
+      return;
+    }
+
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
@@ -135,7 +146,7 @@ const HomeScreen: React.FC = () => {
     });
 
     if (!result.canceled) {
-      const newImages = result.assets?.map(asset => asset.uri) || [result.assets[0].uri];
+      const newImages = result.assets?.map(asset => asset.uri) || [];
       setSelectedImages([...selectedImages, ...newImages]);
     }
   };
@@ -145,48 +156,47 @@ const HomeScreen: React.FC = () => {
     setSelectedImages(updatedImages);
   };
 
-// --- Location Handler ---
-const autoDetectLocation = async () => {
-  try {
-    const { status } = await Location.requestForegroundPermissionsAsync();
-    if (status !== 'granted') {
-      Alert.alert('Permission denied', 'Location permission is required');
-      return;
+  const autoDetectLocation = async () => {
+    setIsLocating(true); // Start loading animation
+    
+    try {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('Permission denied', 'Location permission is required');
+        return;
+      }
+
+      const currentLocation = await Location.getCurrentPositionAsync({});
+      const { latitude, longitude } = currentLocation.coords;
+
+      const [addressInfo] = await Location.reverseGeocodeAsync({ latitude, longitude });
+
+      const detectedAddress = `${addressInfo.name ? addressInfo.name + ', ' : ''}${
+        addressInfo.street ? addressInfo.street + ', ' : ''
+      }${addressInfo.city ? addressInfo.city + ', ' : ''}${
+        addressInfo.region ? addressInfo.region + ', ' : ''
+      }${addressInfo.postalCode ? addressInfo.postalCode + ', ' : ''}${
+        addressInfo.country ? addressInfo.country : ''
+      }`;
+
+      setLocation(detectedAddress);
+      setIsAutoLocation(true);
+    } catch (error) {
+      console.error(error);
+      Alert.alert('Error', 'Could not detect location');
+    } finally {
+      setIsLocating(false); // Stop loading animation
     }
-
-    const currentLocation = await Location.getCurrentPositionAsync({});
-    const { latitude, longitude } = currentLocation.coords;
-
-    // Reverse geocode to get human-readable address
-    const [addressInfo] = await Location.reverseGeocodeAsync({ latitude, longitude });
-
-    const detectedAddress = `${addressInfo.name ? addressInfo.name + ', ' : ''}${
-      addressInfo.street ? addressInfo.street + ', ' : ''
-    }${addressInfo.city ? addressInfo.city + ', ' : ''}${
-      addressInfo.region ? addressInfo.region + ', ' : ''
-    }${addressInfo.postalCode ? addressInfo.postalCode + ', ' : ''}${
-      addressInfo.country ? addressInfo.country : ''
-    }`;
-
-    setLocation(detectedAddress);
-    setIsAutoLocation(true);
-  } catch (error) {
-    console.error(error);
-    Alert.alert('Error', 'Could not detect location');
-  }
-};
-
-
+  };
 
   const generateAIDescription = async () => {
-    // Placeholder for AI-generated description
     const aiDescriptions = [
       'Infrastructure maintenance required due to wear and tear',
       'Public safety concern affecting pedestrian and vehicle traffic',
       'Environmental issue requiring immediate municipal attention',
       'Utility malfunction impacting community services',
     ];
-    
+
     const randomDescription = aiDescriptions[Math.floor(Math.random() * aiDescriptions.length)];
     setDescription(randomDescription);
     Alert.alert('AI Generated', 'Description has been automatically generated');
@@ -197,8 +207,6 @@ const autoDetectLocation = async () => {
       Alert.alert('Error', 'Please fill in all required fields');
       return;
     }
-
-    // Placeholder for backend submission (Supabase integration ready)
     const reportData = {
       issueType: issueType.trim(),
       description: description.trim(),
@@ -209,11 +217,10 @@ const autoDetectLocation = async () => {
     };
 
     console.log('Submitting report:', reportData);
-    
-    // Reset form and close modal
+
     resetForm();
     setModalVisible(false);
-    
+
     Alert.alert('Success', 'Your report has been submitted successfully!');
   };
 
@@ -233,10 +240,10 @@ const autoDetectLocation = async () => {
 
   const getUrgencyColor = (urgency: string) => {
     switch (urgency) {
-      case 'high': return '#FF4500';
-      case 'medium': return '#FFA500';
-      case 'low': return '#32CD32';
-      default: return '#FFA500';
+      case 'high': return '#E74C3C'; // Intense Red
+      case 'medium': return '#F39C12'; // Warm Orange
+      case 'low': return '#2ECC71'; // Calming Green
+      default: return '#F39C12';
     }
   };
 
@@ -250,10 +257,10 @@ const autoDetectLocation = async () => {
   };
 
   const getProgressBarColor = (progress: number) => {
-    if (progress === 0) return '#FFB347';
-    if (progress === 50) return '#FFA500';
-    if (progress === 100) return '#32CD32';
-    return '#FFB347';
+    if (progress === 0) return '#F39C12';
+    if (progress === 50) return '#F39C12';
+    if (progress === 100) return '#2ECC71';
+    return '#F39C12';
   };
 
   const formatTimestamp = (timestamp: string) => {
@@ -266,7 +273,7 @@ const autoDetectLocation = async () => {
       style={styles.container}
     >
       <StatusBar barStyle="dark-content" backgroundColor="#FFF9F0" />
-      
+
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* Header Section with Notification */}
         <View style={styles.header}>
@@ -274,7 +281,7 @@ const autoDetectLocation = async () => {
             <Text style={styles.welcomeText}>Welcome, Citizen!</Text>
             <Text style={styles.subtitleText}>Help improve your city with one tap.</Text>
           </View>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.notificationButton}
             onPress={() => setNotificationModalVisible(true)}
           >
@@ -290,11 +297,11 @@ const autoDetectLocation = async () => {
               <Text style={styles.statLabel}>Total Reports</Text>
             </View>
             <View style={styles.statCard}>
-              <Text style={[styles.statNumber, { color: '#FFB347' }]}>{statsData.pendingIssues}</Text>
+              <Text style={[styles.statNumber, { color: '#F39C12' }]}>{statsData.pendingIssues}</Text>
               <Text style={styles.statLabel}>Pending Issues</Text>
             </View>
             <View style={styles.statCard}>
-              <Text style={[styles.statNumber, { color: '#32CD32' }]}>{statsData.resolvedIssues}</Text>
+              <Text style={[styles.statNumber, { color: '#2ECC71' }]}>{statsData.resolvedIssues}</Text>
               <Text style={styles.statLabel}>Resolved Issues</Text>
             </View>
           </View>
@@ -322,8 +329,8 @@ const autoDetectLocation = async () => {
         <View style={styles.nearbyReportsContainer}>
           <Text style={styles.sectionTitle}>Nearby Reports</Text>
           {nearbyReports.map((report) => (
-            <TouchableOpacity 
-              key={report.id} 
+            <TouchableOpacity
+              key={report.id}
               style={styles.reportCard}
               onPress={() => openReportDetail(report)}
             >
@@ -338,7 +345,7 @@ const autoDetectLocation = async () => {
                     </View>
                   )}
                 </View>
-                
+
                 <View style={styles.reportDetails}>
                   <View style={styles.reportHeader}>
                     <Text style={styles.issueTypeText}>{report.issueType}</Text>
@@ -353,7 +360,7 @@ const autoDetectLocation = async () => {
                       </View>
                       <View style={[
                         styles.statusBadge,
-                        { backgroundColor: report.status === 'resolved' ? '#32CD32' : report.status === 'in_progress' ? '#FFA500' : '#FFB347' }
+                        { backgroundColor: report.status === 'resolved' ? '#2ECC71' : report.status === 'in_progress' ? '#F39C12' : '#F39C12' }
                       ]}>
                         <Text style={styles.statusText}>
                           {getStatusText(report.status)}
@@ -361,16 +368,16 @@ const autoDetectLocation = async () => {
                       </View>
                     </View>
                   </View>
-                  
+
                   <Text style={styles.reportDescription} numberOfLines={2}>
                     {report.description}
                   </Text>
-                  
+
                   <View style={styles.progressContainer}>
                     <View style={styles.progressBarBackground}>
                       <View style={[
                         styles.progressBarFill,
-                        { 
+                        {
                           width: `${report.progress}%`,
                           backgroundColor: getProgressBarColor(report.progress)
                         }
@@ -392,15 +399,18 @@ const autoDetectLocation = async () => {
         visible={modalVisible}
         onRequestClose={() => setModalVisible(false)}
       >
-        <View style={styles.modalOverlay}>
-          <ScrollView contentContainerStyle={styles.modalScrollContainer}>
-            <View style={styles.modalContainer}>
+        <KeyboardAvoidingView
+          style={styles.bottomModalOverlay}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        >
+          <View style={styles.bottomModalContainer}>
+            <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
               <Text style={styles.modalTitle}>Report New Issue</Text>
-              
+
               <Text style={styles.inputLabel}>Issue Type *</Text>
               <TextInput
                 style={styles.input}
-                placeholder="e.g., Pothole, Street Light, Garbage"
+                placeholder="e.g., Pothole, Street Light, Garbage, Other..."
                 value={issueType}
                 onChangeText={setIssueType}
               />
@@ -415,7 +425,7 @@ const autoDetectLocation = async () => {
                   value={description}
                   onChangeText={setDescription}
                 />
-                <TouchableOpacity 
+                <TouchableOpacity
                   style={styles.aiButton}
                   onPress={generateAIDescription}
                 >
@@ -424,17 +434,25 @@ const autoDetectLocation = async () => {
               </View>
 
               <Text style={styles.inputLabel}>Urgency Level</Text>
-              <View style={styles.pickerContainer}>
-                <Picker
-                  selectedValue={urgency}
-                  style={styles.picker}
-                  // @ts-ignore
-                  onValueChange={(itemValue) => setUrgency(itemValue)}
+              <View style={styles.urgencySelector}>
+                <TouchableOpacity
+                  style={[styles.urgencyOption, urgency === 'low' && { backgroundColor: '#2ECC71' }]}
+                  onPress={() => setUrgency('low')}
                 >
-                  <Picker.Item label="Low" value="low" />
-                  <Picker.Item label="Medium" value="medium" />
-                  <Picker.Item label="High" value="high" />
-                </Picker>
+                  <Text style={[styles.urgencyOptionText, urgency === 'low' && { color: '#FFFFFF' }]}>Low</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.urgencyOption, urgency === 'medium' && { backgroundColor: '#F39C12' }]}
+                  onPress={() => setUrgency('medium')}
+                >
+                  <Text style={[styles.urgencyOptionText, urgency === 'medium' && { color: '#FFFFFF' }]}>Medium</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.urgencyOption, urgency === 'high' && { backgroundColor: '#E74C3C' }]}
+                  onPress={() => setUrgency('high')}
+                >
+                  <Text style={[styles.urgencyOptionText, urgency === 'high' && { color: '#FFFFFF' }]}>High</Text>
+                </TouchableOpacity>
               </View>
 
               <Text style={styles.inputLabel}>Photos (Optional)</Text>
@@ -447,7 +465,7 @@ const autoDetectLocation = async () => {
                   {selectedImages.map((uri, index) => (
                     <View key={index} style={styles.imagePreviewWrapper}>
                       <Image source={{ uri }} style={styles.previewImage} />
-                      <TouchableOpacity 
+                      <TouchableOpacity
                         style={styles.removeImageButton}
                         onPress={() => removeImage(index)}
                       >
@@ -458,25 +476,29 @@ const autoDetectLocation = async () => {
                 </ScrollView>
               )}
 
-           <Text style={styles.inputLabel}>Location</Text>
-<View style={styles.locationRow}>
-  <TextInput
-    style={[styles.input, { flex: 1 }]}
-    placeholder="Enter location manually or auto-detect"
-    value={location}
-    onChangeText={(text) => {
-      setLocation(text);
-      setIsAutoLocation(false); // user is manually editing
-    }}
-  />
-  <TouchableOpacity 
-    style={styles.locationButton}
-    onPress={autoDetectLocation}
-  >
-    <Text style={styles.locationButtonText}>📍</Text>
-  </TouchableOpacity>
-</View>
-
+              <Text style={styles.inputLabel}>Location</Text>
+              <View style={styles.locationRow}>
+                {isLocating ? (
+                  <Text style={styles.loadingText}>Locating...</Text>
+                ) : (
+                  <TextInput
+                    style={[styles.input, { flex: 1 }]}
+                    placeholder="Enter location manually or auto-detect"
+                    value={location}
+                    onChangeText={(text) => {
+                      setLocation(text);
+                      setIsAutoLocation(false);
+                    }}
+                  />
+                )}
+                <TouchableOpacity
+                  style={styles.locationButton}
+                  onPress={autoDetectLocation}
+                  disabled={isLocating}
+                >
+                  <Text style={styles.locationButtonText}>📍</Text>
+                </TouchableOpacity>
+              </View>
 
               <View style={styles.modalButtonRow}>
                 <TouchableOpacity
@@ -495,9 +517,9 @@ const autoDetectLocation = async () => {
                   <Text style={styles.submitButtonText}>Submit Report</Text>
                 </TouchableOpacity>
               </View>
-            </View>
-          </ScrollView>
-        </View>
+            </ScrollView>
+          </View>
+        </KeyboardAvoidingView>
       </Modal>
 
       {/* Report Detail Modal */}
@@ -512,7 +534,7 @@ const autoDetectLocation = async () => {
             {selectedReport && (
               <>
                 <Text style={styles.modalTitle}>{selectedReport.issueType}</Text>
-                
+
                 <ScrollView horizontal style={styles.detailPhotosContainer}>
                   {selectedReport.photoUris.map((uri, index) => (
                     <Image key={index} source={{ uri }} style={styles.detailImage} />
@@ -520,7 +542,7 @@ const autoDetectLocation = async () => {
                 </ScrollView>
 
                 <Text style={styles.detailDescription}>{selectedReport.description}</Text>
-                
+
                 <View style={styles.detailBadgesRow}>
                   <View style={[
                     styles.urgencyBadge,
@@ -532,7 +554,7 @@ const autoDetectLocation = async () => {
                   </View>
                   <View style={[
                     styles.statusBadge,
-                    { backgroundColor: selectedReport.status === 'resolved' ? '#32CD32' : selectedReport.status === 'in_progress' ? '#FFA500' : '#FFB347' }
+                    { backgroundColor: selectedReport.status === 'resolved' ? '#2ECC71' : selectedReport.status === 'in_progress' ? '#F39C12' : '#F39C12' }
                   ]}>
                     <Text style={styles.statusText}>
                       {getStatusText(selectedReport.status)}
@@ -545,7 +567,7 @@ const autoDetectLocation = async () => {
                   <View style={styles.progressBarBackground}>
                     <View style={[
                       styles.progressBarFill,
-                      { 
+                      {
                         width: `${selectedReport.progress}%`,
                         backgroundColor: getProgressBarColor(selectedReport.progress)
                       }
@@ -579,7 +601,7 @@ const autoDetectLocation = async () => {
         <View style={styles.modalOverlay}>
           <View style={styles.notificationModalContainer}>
             <Text style={styles.modalTitle}>Notifications</Text>
-            
+
             <FlatList
               data={notifications}
               keyExtractor={(item) => item.id}
@@ -688,7 +710,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   primaryActionButton: {
-    backgroundColor: '#FFA500',
+    backgroundColor: '#F39C12',
     borderRadius: 12,
     padding: 16,
     width: width - 40,
@@ -769,7 +791,7 @@ const styles = StyleSheet.create({
   issueTypeText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#FF4500',
+    color: '#E74C3C',
     flex: 1,
   },
   badgesRow: {
@@ -831,16 +853,24 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  modalScrollContainer: {
-    flexGrow: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
   modalContainer: {
     backgroundColor: '#FFFFFF',
     borderRadius: 20,
     padding: 20,
     width: width - 40,
+    maxHeight: '90%',
+  },
+  bottomModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'flex-end',
+  },
+  bottomModalContainer: {
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    padding: 20,
+    width: '100%',
     maxHeight: '90%',
   },
   modalTitle: {
@@ -875,7 +905,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   aiButton: {
-    backgroundColor: '#FFA500',
+    backgroundColor: '#F39C12',
     borderRadius: 8,
     width: 40,
     height: 40,
@@ -887,25 +917,37 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: 'bold',
   },
-  pickerContainer: {
+  urgencySelector: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    backgroundColor: '#F9F9F9',
+    borderRadius: 8,
+    padding: 4,
     borderWidth: 1,
     borderColor: '#E0E0E0',
-    borderRadius: 8,
-    backgroundColor: '#F9F9F9',
   },
-  picker: {
-    height: 50,
+  urgencyOption: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: 10,
+    borderRadius: 6,
+  },
+  urgencyOptionText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#333333',
   },
   photoButton: {
     borderWidth: 1,
-    borderColor: '#FFA500',
+    borderColor: '#F39C12',
     borderRadius: 8,
     padding: 12,
     alignItems: 'center',
     backgroundColor: '#FFF9F0',
+    marginTop: 16,
   },
   photoButtonText: {
-    color: '#FFA500',
+    color: '#F39C12',
     fontSize: 16,
     fontWeight: '600',
   },
@@ -925,7 +967,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: -8,
     right: -8,
-    backgroundColor: '#FF4500',
+    backgroundColor: '#E74C3C',
     borderRadius: 12,
     width: 24,
     height: 24,
@@ -943,7 +985,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   locationButton: {
-    backgroundColor: '#FFA500',
+    backgroundColor: '#F39C12',
     borderRadius: 8,
     width: 40,
     height: 40,
@@ -971,7 +1013,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   submitButton: {
-    backgroundColor: '#FFA500',
+    backgroundColor: '#F39C12',
     borderRadius: 8,
     padding: 12,
     width: (width - 90) / 2,
@@ -1020,7 +1062,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   closeDetailButton: {
-    backgroundColor: '#FFA500',
+    backgroundColor: '#F39C12',
     borderRadius: 8,
     padding: 12,
     alignItems: 'center',
@@ -1060,7 +1102,7 @@ const styles = StyleSheet.create({
     color: '#999999',
   },
   closeNotificationButton: {
-    backgroundColor: '#FFA500',
+    backgroundColor: '#F39C12',
     borderRadius: 8,
     padding: 12,
     alignItems: 'center',
@@ -1070,6 +1112,13 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '600',
+  },
+  loadingText: {
+    fontSize: 16,
+    color: '#555555',
+    fontStyle: 'italic',
+    padding: 12,
+    flex: 1,
   },
 });
 
