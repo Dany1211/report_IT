@@ -238,7 +238,7 @@ const StatCard = ({ title, value, icon }) => (
 // Helper function to get status colors
 const getStatusColor = (status) => {
   switch (status) {
-    case "Open":
+    case "Pending":
       return "text-[#FF4500] bg-[#FF4500]/10";
     case "In Progress":
       return "text-[#FFB347] bg-[#FFB347]/10";
@@ -312,7 +312,7 @@ export default function App() {
     {
       id: 2,
       issue: "Streetlight outage",
-      status: "Open",
+      status: "Pending",
       location: "37.7818° N, 122.4085° W",
     },
     {
@@ -337,7 +337,7 @@ export default function App() {
         {/* Stat Cards Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           <StatCard
-            title="Open Issues"
+            title="Pending Issues"
             value="42"
             icon={<AlertCircle size={20} />}
           />

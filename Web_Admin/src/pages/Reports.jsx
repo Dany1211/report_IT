@@ -21,150 +21,126 @@ const assignPriorityByArea = (reports) => {
 export default function Reports() {
   const initialReports = [
     {
-      "id": 1,
-      "issue": "Pothole on Main Street",
-      "description": "Large pothole near the traffic light, causing cars to swerve.",
-      "category": "Potholes",
-      "area": "Downtown",
-      "status": "In Progress",
-      "reporter": "John Doe",
-      "submittedAt": "2025-09-01",
-      "department": "Unassigned",
-      "notes": ""
+      id: 1,
+      issue: "Pothole on Main Street",
+      description: "Large pothole near the traffic light, causing cars to swerve.",
+      category: "Potholes",
+      area: "Downtown",
+      status: "In Progress",
+      reporter: "John Doe",
+      submittedAt: "2025-09-01",
+      department: "Unassigned",
+      notes: ""
     },
     {
-      "id": 2,
-      "issue": "Streetlight outage",
-      "description": "Streetlight not working outside the library, area is dark at night.",
-      "category": "Streetlights",
-      "area": "Downtown",
-      "status": "Pending",
-      "reporter": "Jane Smith",
-      "submittedAt": "2025-09-02",
-      "department": "Unassigned",
-      "notes": ""
+      id: 2,
+      issue: "Streetlight outage",
+      description: "Streetlight not working outside the library, area is dark at night.",
+      category: "Streetlights",
+      area: "Downtown",
+      status: "Pending",
+      reporter: "Jane Smith",
+      submittedAt: "2025-09-02",
+      department: "Unassigned",
+      notes: ""
     },
     {
-      "id": 3,
-      "issue": "Overflowing trash bin",
-      "description": "Trash bin on 3rd Ave is overflowing, attracting stray dogs.",
-      "category": "Trash",
-      "area": "Uptown",
-      "status": "Resolved",
-      "reporter": "Alex Johnson",
-      "submittedAt": "2025-09-03",
-      "department": "Sanitation",
-      "notes": "Cleaned on 2025-09-04"
+      id: 3,
+      issue: "Overflowing trash bin",
+      description: "Trash bin on 3rd Ave is overflowing, attracting stray dogs.",
+      category: "Trash",
+      area: "Uptown",
+      status: "Resolved",
+      reporter: "Alex Johnson",
+      submittedAt: "2025-09-03",
+      department: "Sanitation",
+      notes: "Cleaned on 2025-09-04"
     },
     {
-      "id": 4,
-      "issue": "Graffiti on bus stop",
-      "description": "Graffiti on the bus stop shelter at Elm Street.",
-      "category": "Graffiti",
-      "area": "Midtown",
-      "status": "In Progress",
-      "reporter": "Maria Lee",
-      "submittedAt": "2025-09-04",
-      "department": "Public Works",
-      "notes": ""
+      id: 4,
+      issue: "Graffiti on bus stop",
+      description: "Graffiti on the bus stop shelter at Elm Street.",
+      category: "Graffiti",
+      area: "Midtown",
+      status: "In Progress",
+      reporter: "Maria Lee",
+      submittedAt: "2025-09-04",
+      department: "Public Works",
+      notes: ""
     },
     {
-      "id": 5,
-      "issue": "Broken park bench",
-      "description": "Bench in Central Park has a broken seat, unsafe for use.",
-      "category": "Public Property",
-      "area": "Central Park",
-      "status": "Pending",
-      "reporter": "David Green",
-      "submittedAt": "2025-09-05",
-      "department": "Public Works",
-      "notes": ""
+      id: 5,
+      issue: "Broken park bench",
+      description: "Bench in Central Park has a broken seat, unsafe for use.",
+      category: "Public Property",
+      area: "Central Park",
+      status: "Pending",
+      reporter: "David Green",
+      submittedAt: "2025-09-05",
+      department: "Public Works",
+      notes: ""
     },
     {
-      "id": 6,
-      "issue": "Leaking fire hydrant",
-      "description": "Water leaking continuously from hydrant on Maple Street.",
-      "category": "Utilities",
-      "area": "Maple Street",
-      "status": "In Progress",
-      "reporter": "Sophia Brown",
-      "submittedAt": "2025-09-05",
-      "department": "Unassigned",
-      "notes": ""
+      id: 6,
+      issue: "Leaking fire hydrant",
+      description: "Water leaking continuously from hydrant on Maple Street.",
+      category: "Utilities",
+      area: "Maple Street",
+      status: "In Progress",
+      reporter: "Sophia Brown",
+      submittedAt: "2025-09-05",
+      department: "Unassigned",
+      notes: ""
     },
     {
-      "id": 7,
-      "issue": "Illegal dumping",
-      "description": "Large pile of garbage dumped behind the shopping plaza.",
-      "category": "Trash",
-      "area": "Industrial Zone",
-      "status": "Pending",
-      "reporter": "Michael Clark",
-      "submittedAt": "2025-09-06",
-      "department": "Sanitation",
-      "notes": ""
+      id: 7,
+      issue: "Illegal dumping",
+      description: "Large pile of garbage dumped behind the shopping plaza.",
+      category: "Trash",
+      area: "Industrial Zone",
+      status: "Pending",
+      reporter: "Michael Clark",
+      submittedAt: "2025-09-06",
+      department: "Sanitation",
+      notes: ""
     },
     {
-      "id": 8,
-      "issue": "Fallen tree blocking road",
-      "description": "Tree blocking traffic near River Road bridge.",
-      "category": "Obstruction",
-      "area": "River Road",
-      "status": "In Progress",
-      "reporter": "Emily Davis",
-      "submittedAt": "2025-09-06",
-      "department": "Public Works",
-      "notes": "Team dispatched"
+      id: 8,
+      issue: "Fallen tree blocking road",
+      description: "Tree blocking traffic near River Road bridge.",
+      category: "Obstruction",
+      area: "River Road",
+      status: "In Progress",
+      reporter: "Emily Davis",
+      submittedAt: "2025-09-06",
+      department: "Public Works",
+      notes: "Team dispatched"
     },
     {
-      "id": 9,
-      "issue": "Flooded sidewalk",
-      "description": "Water accumulation due to poor drainage at Pine Avenue.",
-      "category": "Drainage",
-      "area": "Pine Avenue",
-      "status": "Pending",
-      "reporter": "Chris Evans",
-      "submittedAt": "2025-09-07",
-      "department": "Unassigned",
-      "notes": ""
+      id: 9,
+      issue: "Flooded sidewalk",
+      description: "Water accumulation due to poor drainage at Pine Avenue.",
+      category: "Drainage",
+      area: "Pine Avenue",
+      status: "Pending",
+      reporter: "Chris Evans",
+      submittedAt: "2025-09-07",
+      department: "Unassigned",
+      notes: ""
     },
     {
-      "id": 10,
-      "issue": "Damaged traffic signal",
-      "description": "Traffic light not functioning at 5th & Main intersection.",
-      "category": "Streetlights",
-      "area": "5th Avenue",
-      "status": "Resolved",
-      "reporter": "Laura White",
-      "submittedAt": "2025-09-07",
-      "department": "Electrical",
-      "notes": "Fixed on 2025-09-08"
-    },
-    {
-      "id": 11,
-      "issue": "Pothole on Main Street",
-      "description": "Large pothole near the traffic light, causing cars to swerve.",
-      "category": "Potholes",
-      "area": "Downtown",
-      "status": "In Progress",
-      "reporter": "John Doe",
-      "submittedAt": "2025-09-01",
-      "department": "Unassigned",
-      "notes": ""
-    },
-    {
-      "id": 12,
-      "issue": "Pothole on Main Street",
-      "description": "Large pothole near the traffic light, causing cars to swerve.",
-      "category": "Potholes",
-      "area": "Downtown",
-      "status": "In Progress",
-      "reporter": "John Doe",
-      "submittedAt": "2025-09-01",
-      "department": "Unassigned",
-      "notes": ""
+      id: 10,
+      issue: "Damaged traffic signal",
+      description: "Traffic light not functioning at 5th & Main intersection.",
+      category: "Streetlights",
+      area: "5th Avenue",
+      status: "Resolved",
+      reporter: "Laura White",
+      submittedAt: "2025-09-07",
+      department: "Electrical",
+      notes: "Fixed on 2025-09-08"
     }
-  ]
+  ];
 
   const [reports, setReports] = useState(assignPriorityByArea(initialReports));
   const [categoryFilter, setCategoryFilter] = useState("All");
@@ -192,15 +168,16 @@ export default function Reports() {
   const getStatusStyle = (status) => {
     switch (status) {
       case "Resolved":
-        return "bg-[#32CD32] text-white px-2 py-1 rounded-lg text-sm";
+        return "bg-[#32CD32]/10 text-[#32CD32] px-2 py-1 rounded-lg text-sm";
       case "In Progress":
-        return "bg-[#FFB347] text-[#333] px-2 py-1 rounded-lg text-sm";
+        return "bg-[#FFB347]/10 text-[#FFB347] px-2 py-1 rounded-lg text-sm";
       case "Pending":
-        return "bg-[#FF4500] text-white px-2 py-1 rounded-lg text-sm";
+        return "bg-[#FF4500]/10 text-[#FF4500] px-2 py-1 rounded-lg text-sm";
       default:
         return "px-2 py-1 rounded-lg text-sm";
     }
   };
+
 
   // Save updates from modal
   const handleSaveChanges = () => {
@@ -327,12 +304,11 @@ export default function Reports() {
       {/* Modal */}
       {selectedReport && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl shadow-xl p-6 max-w-lg w-full max-h-[90vh] flex flex-col">
-            {/* Modal Header */}
-            <h2 className="text-xl font-bold mb-4 text-[#333]">Report Details</h2>
-
-            {/* Scrollable Content */}
-            <div className="space-y-2 text-[#555] overflow-y-auto pr-2 flex-1">
+          <div className="bg-white rounded-2xl shadow-xl p-6 max-w-lg w-full max-h-[90vh] overflow-y-auto animate-fadeIn">
+            <h2 className="text-xl font-bold mb-4 text-[#333]">
+              Report Details
+            </h2>
+            <div className="space-y-2 text-[#555]">
               <p><strong>ID:</strong> {selectedReport.id}</p>
               <p><strong>Issue:</strong> {selectedReport.issue}</p>
               <p><strong>Description:</strong> {selectedReport.description}</p>
@@ -347,11 +323,50 @@ export default function Reports() {
                   {selectedReport.status}
                 </span>
               </p>
+            </div>
 
-              {/* Photo Upload - show only if status is In Progress or Resolved */}
+            {/* Admin Actions */}
+            <div className="mt-4 space-y-4">
+              <div>
+                <label className="block font-semibold mb-1">Update Status</label>
+                <select
+                  value={selectedReport.status}
+                  onChange={(e) =>
+                    setSelectedReport({ ...selectedReport, status: e.target.value })
+                  }
+                  className="border rounded-lg p-2 w-full"
+                >
+                  <option value="Pending">Pending</option>
+                  <option value="In Progress">In Progress</option>
+                  <option value="Resolved">Resolved</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block font-semibold mb-1">Assign Department</label>
+                <select
+                  value={selectedReport.department}
+                  onChange={(e) =>
+                    setSelectedReport({
+                      ...selectedReport,
+                      department: e.target.value,
+                    })
+                  }
+                  className="border rounded-lg p-2 w-full"
+                >
+                  <option value="Unassigned">Unassigned</option>
+                  <option value="Public Works">Public Works</option>
+                  <option value="Sanitation">Sanitation</option>
+                  <option value="Electrical">Electrical</option>
+                </select>
+              </div>
+
+
+
+              {/* Photo Upload - only for In Progress or Resolved */}
               {(selectedReport.status === "In Progress" ||
                 selectedReport.status === "Resolved") && (
-                  <div className="mt-4">
+                  <div>
                     <label className="block font-semibold mb-1">Upload Photo</label>
                     <input
                       type="file"
@@ -372,7 +387,6 @@ export default function Reports() {
                       className="border rounded-lg p-2 w-full"
                     />
 
-                    {/* Preview */}
                     {selectedReport.photo && (
                       <div className="mt-2">
                         <p className="text-sm font-medium mb-1">Preview:</p>
@@ -385,60 +399,22 @@ export default function Reports() {
                     )}
                   </div>
                 )}
-
-              {/* Admin Actions */}
-              <div className="mt-4 space-y-4">
-                <div>
-                  <label className="block font-semibold mb-1">Update Status</label>
-                  <select
-                    value={selectedReport.status}
-                    onChange={(e) =>
-                      setSelectedReport({ ...selectedReport, status: e.target.value })
-                    }
-                    className="border rounded-lg p-2 w-full"
-                  >
-                    <option value="Pending">Pending</option>
-                    <option value="In Progress">In Progress</option>
-                    <option value="Resolved">Resolved</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block font-semibold mb-1">Assign Department</label>
-                  <select
-                    value={selectedReport.department}
-                    onChange={(e) =>
-                      setSelectedReport({
-                        ...selectedReport,
-                        department: e.target.value,
-                      })
-                    }
-                    className="border rounded-lg p-2 w-full"
-                  >
-                    <option value="Unassigned">Unassigned</option>
-                    <option value="Public Works">Public Works</option>
-                    <option value="Sanitation">Sanitation</option>
-                    <option value="Electrical">Electrical</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block font-semibold mb-1">Notes</label>
-                  <textarea
-                    value={selectedReport.notes}
-                    onChange={(e) =>
-                      setSelectedReport({ ...selectedReport, notes: e.target.value })
-                    }
-                    className="border rounded-lg p-2 w-full"
-                    rows="3"
-                    placeholder="Add remarks or update notes..."
-                  />
-                </div>
-              </div>
             </div>
 
-            {/* Footer Buttons */}
-            <div className="mt-4 flex justify-end gap-3">
+            <div>
+              <label className="block font-semibold mb-1">Notes</label>
+              <textarea
+                value={selectedReport.notes}
+                onChange={(e) =>
+                  setSelectedReport({ ...selectedReport, notes: e.target.value })
+                }
+                className="border rounded-lg p-2 w-full"
+                rows="3"
+                placeholder="Add remarks or update notes..."
+              />
+            </div>
+
+            <div className="mt-6 flex justify-end gap-3">
               <button
                 onClick={() => setSelectedReport(null)}
                 className="bg-gray-300 hover:bg-gray-400 text-black px-4 py-2 rounded-xl shadow"
