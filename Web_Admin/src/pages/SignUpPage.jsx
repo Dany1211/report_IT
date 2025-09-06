@@ -1,29 +1,32 @@
-// src/pages/LoginPage.jsx
+// src/pages/SignUpPage.jsx
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-const LoginPage = () => {
+const SignUpPage = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
 
-  const handleLogin = (e) => {
+  const handleSignUp = (e) => {
     e.preventDefault();
 
-    // Dummy login validation
-    if (email === "admin@example.com" && password === "admin123") {
-      navigate("/"); // redirect to dashboard home
-    } else {
-      setError("Invalid email or password");
+    if (password !== confirmPassword) {
+      setError("Passwords do not match");
+      return;
     }
+
+    // Dummy sign-up success
+    alert("✅ Account created successfully!");
+    navigate("/login"); // redirect to login after signup
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#FFF9F0] to-[#FFF1C6] p-6">
-      <div className="w-full max-w-md bg-white shadow-lg shadow-[rgba(0,0,0,0.1)] rounded-2xl p-8">
+      <div className="w-full max-w-md bg-white shadow-lg rounded-2xl p-8">
         <h2 className="text-2xl font-bold text-center mb-6 text-[#333333]">
-          Admin Login
+          Create Account
         </h2>
 
         {error && (
@@ -32,7 +35,7 @@ const LoginPage = () => {
           </div>
         )}
 
-        <form onSubmit={handleLogin} className="space-y-4">
+        <form onSubmit={handleSignUp} className="space-y-4">
           <div>
             <label className="block text-sm font-medium mb-1 text-[#555555]">
               Email
@@ -42,7 +45,7 @@ const LoginPage = () => {
               className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#FFA500]"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="admin@example.com"
+              placeholder="you@example.com"
               required
             />
           </div>
@@ -61,25 +64,35 @@ const LoginPage = () => {
             />
           </div>
 
+          <div>
+            <label className="block text-sm font-medium mb-1 text-[#555555]">
+              Confirm Password
+            </label>
+            <input
+              type="password"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#FFA500]"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              placeholder="••••••••"
+              required
+            />
+          </div>
+
           <button
             type="submit"
-            className="w-full bg-[#FFA500] text-white py-2 rounded-lg font-medium hover:bg-[#e59400] transition"
+            className="w-full bg-[#32CD32] text-white py-2 rounded-lg font-medium hover:bg-green-600 transition"
           >
-            Login
+            Sign Up
           </button>
         </form>
 
-        <p className="text-sm text-center text-[#555555] mt-4 bg-[#FFE4B5] py-2 rounded-lg">
-          Demo: <b>admin@example.com</b> / <b>admin123</b>
-        </p>
-
         <p className="text-sm text-center text-[#555555] mt-4">
-          Don’t have an account?{" "}
+          Already have an account?{" "}
           <button
-            onClick={() => navigate("/signup")}
+            onClick={() => navigate("/login")}
             className="text-[#FF4500] font-medium hover:underline"
           >
-            Sign Up
+            Login
           </button>
         </p>
       </div>
@@ -87,4 +100,4 @@ const LoginPage = () => {
   );
 };
 
-export default LoginPage;
+export default SignUpPage;
