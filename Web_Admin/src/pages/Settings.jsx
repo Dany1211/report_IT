@@ -7,35 +7,39 @@ const SettingsPage = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("general");
   const [user, setUser] = useState(null);
-  const [profile, setProfile] = useState({ name: "", role: "", department: "", avatar: "" });
+  const [profile, setProfile] = useState({ name: "", role: "", email: "", avatar: "" });
 
   // Fetch user + profile info from Supabase
   useEffect(() => {
     const fetchUser = async () => {
       const { data: currentUser } = await supabase.auth.getUser();
+
       if (currentUser?.user) {
         setUser(currentUser.user);
 
+        // fetch from profiles table using email
         const { data: profileData, error } = await supabase
           .from("profiles")
-          .select("full_name, role, department, avatar_url")
-          .eq("id", currentUser.user.id)
+          .select("name, role, email")
+          .eq("email", currentUser.user.email)
           .single();
 
         if (!error && profileData) {
           setProfile({
-            name: profileData.full_name,
+            name: profileData.name,
             role: profileData.role,
-            department: profileData.department,
-            avatar: profileData.avatar_url,
+            email: profileData.email,
+            avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(
+              profileData.name
+            )}&background=FFA500&color=fff`, // auto avatar
           });
         } else {
-          // fallback if no extra profile data
+          // fallback if no profile data
           setProfile({
             name: "Admin Officer",
-            role: "City Authority",
-            department: "Municipal Corporation",
-            avatar: "https://ui-avatars.com/api/?name=Admin&background=FFA500&color=fff", // default avatar
+            role: "Authority",
+            email: currentUser.user.email,
+            avatar: "https://ui-avatars.com/api/?name=Admin&background=FFA500&color=fff",
           });
         }
       } else {
@@ -66,32 +70,14 @@ const SettingsPage = () => {
               />
               <div>
                 <h3 className="text-xl font-semibold">{profile.name}</h3>
-                <p className="text-gray-600">{user?.email}</p>
-                <p className="text-sm text-gray-500">
-                  {profile.role} • {profile.department}
-                </p>
+                <p className="text-gray-600">{profile.email}</p>
+                <p className="text-sm text-gray-500">{profile.role}</p>
                 <button className="mt-3 bg-[#FFA500] text-white px-4 py-2 rounded-lg hover:bg-[#e59400]">
                   Edit Profile
                 </button>
               </div>
             </div>
-
-            {/* Theme */}
-            <div>
-              <h3 className="font-semibold text-lg mb-3">Theme</h3>
-              <div className="flex items-center space-x-3">
-                <div className="w-6 h-6 rounded-full bg-[#FFA500] border-2 border-black"></div>
-                <span>Custom Theme (Orange)</span>
-              </div>
-              <div className="mt-3 flex space-x-4">
-                <button className="px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300">Light Mode</button>
-                <button className="px-4 py-2 rounded-lg bg-gray-800 text-white hover:bg-gray-900">Dark Mode</button>
-              </div>
-            </div>
-
-            
           </div>
-
         );
       case "security":
         return (
@@ -108,6 +94,17 @@ const SettingsPage = () => {
                 Enable 2FA
               </button>
             </div>
+          </div>
+        );
+      case "activity":
+        return (
+          <div>
+            <h3 className="font-semibold text-lg mb-3">📜 Recent Activity</h3>
+            <ul className="list-disc list-inside text-gray-700 space-y-2">
+              <li>Logged in at 10:30 AM</li>
+              <li>Viewed complaint #23</li>
+              <li>Updated settings</li>
+            </ul>
           </div>
         );
       default:
@@ -129,10 +126,11 @@ const SettingsPage = () => {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`w-full text-left px-4 py-2 rounded-lg font-medium transition ${activeTab === tab.id
+              className={`w-full text-left px-4 py-2 rounded-lg font-medium transition ${
+                activeTab === tab.id
                   ? "bg-[#FFA500] text-white shadow"
                   : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                }`}
+              }`}
             >
               {tab.label}
             </button>
@@ -143,7 +141,9 @@ const SettingsPage = () => {
       {/* Main Content */}
       <main className="flex-1 p-8 bg-white shadow-md rounded-l-2xl">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold text-[#333] capitalize">{activeTab} Settings</h1>
+          <h1 className="text-2xl font-bold text-[#333] capitalize">
+            {activeTab} Settings
+          </h1>
           <button
             onClick={handleLogout}
             className="bg-[#FF4500] text-white px-4 py-2 rounded-lg font-medium hover:bg-red-600 transition"
