@@ -6,16 +6,17 @@ import {
   TouchableOpacity,
   StyleSheet,
   Image,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
   Alert,
   ActivityIndicator,
+  Keyboard,
+  TouchableWithoutFeedback,
+  Platform,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
 import { supabase } from "../supabaseClient";
 import { Ionicons } from "@expo/vector-icons";
+import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 
 export default function SignupScreen() {
   const router = useRouter();
@@ -40,7 +41,6 @@ export default function SignupScreen() {
     try {
       setLoading(true);
 
-      // 1️⃣ Sign up user
       const { data: signUpData, error: signUpError } =
         await supabase.auth.signUp({
           email,
@@ -52,7 +52,6 @@ export default function SignupScreen() {
         return;
       }
 
-      // 2️⃣ Insert into profiles table (name included)
       const { error: profileError } = await supabase.from("profiles").insert([
         {
           id: signUpData.user?.id,
@@ -80,14 +79,14 @@ export default function SignupScreen() {
   };
 
   return (
-    <KeyboardAvoidingView
-      style={{ flex: 1 }}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-    >
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
       <LinearGradient colors={["#FFF9F0", "#FFF1C6"]} style={{ flex: 1 }}>
-        <ScrollView
-          contentContainerStyle={styles.scrollContainer}
+        <KeyboardAwareScrollView
+          contentContainerStyle={{ flexGrow: 1 }}
           keyboardShouldPersistTaps="handled"
+          enableOnAndroid={true}
+          extraScrollHeight={20}
+          showsVerticalScrollIndicator={false}
         >
           {/* Header */}
           <View style={styles.header}>
@@ -123,6 +122,7 @@ export default function SignupScreen() {
                 placeholder="Email"
                 placeholderTextColor="#888"
                 keyboardType="email-address"
+                autoCapitalize="none"
                 value={email}
                 onChangeText={setEmail}
               />
@@ -160,7 +160,9 @@ export default function SignupScreen() {
                   onChangeText={setConfirmPassword}
                 />
                 <TouchableOpacity
-                  onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+                  onPress={() =>
+                    setShowConfirmPassword(!showConfirmPassword)
+                  }
                   style={styles.eyeButton}
                 >
                   <Ionicons
@@ -194,9 +196,9 @@ export default function SignupScreen() {
               <Text style={styles.footerLink}> Terms & Privacy Policy</Text>
             </TouchableOpacity>
           </View>
-        </ScrollView>
+        </KeyboardAwareScrollView>
       </LinearGradient>
-    </KeyboardAvoidingView>
+    </TouchableWithoutFeedback>
   );
 }
 
@@ -211,15 +213,9 @@ const COLORS = {
 
 // Styles
 const styles = StyleSheet.create({
-  scrollContainer: {
-    flexGrow: 1,
-    justifyContent: "flex-start",
-    paddingHorizontal: 20,
-    paddingTop: 100,
-    paddingBottom: 30,
-  },
   header: {
     alignItems: "center",
+    marginTop: 80,
     marginBottom: 20,
   },
   logo: {
@@ -246,6 +242,7 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
     elevation: 6,
     marginBottom: 20,
+    marginHorizontal: 20,
   },
   welcome: {
     fontSize: 22,
@@ -270,12 +267,12 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     borderWidth: 1,
     borderColor: "#ddd",
-    paddingRight: 40, // leave space for eye button
+    paddingRight: 40,
   },
   passwordContainer: {
     position: "relative",
     width: "100%",
-    marginBottom: 15,
+    marginBottom: 0,
   },
   eyeButton: {
     position: "absolute",
@@ -304,7 +301,8 @@ const styles = StyleSheet.create({
   footer: {
     flexDirection: "row",
     justifyContent: "center",
-    marginTop: 15,
+    marginBottom: 30,
+    marginTop: 10,
   },
   footerText: {
     color: COLORS.textSub,

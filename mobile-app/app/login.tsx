@@ -6,17 +6,17 @@ import {
   TouchableOpacity,
   StyleSheet,
   Image,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
   Alert,
   ActivityIndicator,
+  Keyboard,
+  TouchableWithoutFeedback,
+  Linking,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
-import { supabase } from "../supabaseClient"; // Make sure your supabaseClient is setup
+import { supabase } from "../supabaseClient";
 import { Ionicons } from "@expo/vector-icons";
-import { Linking } from "react-native";
+import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -34,7 +34,6 @@ export default function LoginScreen() {
     try {
       setLoading(true);
 
-      // 1️⃣ Sign in with Supabase Auth
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -43,7 +42,6 @@ export default function LoginScreen() {
       if (error) throw error;
       if (!data.user) throw new Error("No user found");
 
-      // 2️⃣ Fetch role from profiles table
       const { data: profile, error: profileError } = await supabase
         .from("profiles")
         .select("role")
@@ -52,7 +50,6 @@ export default function LoginScreen() {
 
       if (profileError) throw profileError;
 
-      // 3️⃣ Check role
       if (profile.role === "admin") {
         Alert.alert(
           "Admin Access",
@@ -63,13 +60,12 @@ export default function LoginScreen() {
               onPress: () =>
                 Linking.openURL(
                   "https://www.linkedin.com/in/shubham-kendre-23b605285/"
-                ), // <-- replace with your admin portal URL
+                ),
             },
             { text: "OK", style: "cancel" },
           ]
         );
       } else {
-        // normal user
         router.replace("/(tabs)");
       }
     } catch (err: any) {
@@ -80,14 +76,16 @@ export default function LoginScreen() {
   };
 
   return (
-    <KeyboardAvoidingView
-      style={{ flex: 1 }}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-    >
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
       <LinearGradient colors={["#FFF9F0", "#FFF1C6"]} style={{ flex: 1 }}>
-        <ScrollView
-          contentContainerStyle={styles.scrollContainer}
+
+
+        <KeyboardAwareScrollView
+          contentContainerStyle={{ flexGrow: 1 }}
           keyboardShouldPersistTaps="handled"
+          enableOnAndroid={true}
+          extraScrollHeight={20}
+          showsVerticalScrollIndicator={false}
         >
           {/* Header */}
           <View style={styles.header}>
@@ -95,7 +93,6 @@ export default function LoginScreen() {
               source={require("../assets/images/logo.png")}
               style={styles.logo}
             />
-            {/* <Text style={styles.title}>ReportIT</Text> */}
             <Text style={styles.subtitle}>Your City. Your Voice.</Text>
           </View>
 
@@ -113,6 +110,7 @@ export default function LoginScreen() {
                 placeholder="Email"
                 placeholderTextColor="#888"
                 keyboardType="email-address"
+                autoCapitalize="none"
                 value={email}
                 onChangeText={setEmail}
               />
@@ -163,15 +161,14 @@ export default function LoginScreen() {
               <Text style={styles.footerLink}> Sign up here</Text>
             </TouchableOpacity>
           </View>
-        </ScrollView>
+        </KeyboardAwareScrollView>
       </LinearGradient>
-    </KeyboardAvoidingView>
+    </TouchableWithoutFeedback>
   );
 }
 
 // 🎨 Theme Colors
 const COLORS = {
-  backgroundGradient: ["#FFF9F0", "#FFF1C6"],
   card: "#FFFFFF",
   primary: "#FFA500",
   textHeader: "#333333",
@@ -181,16 +178,12 @@ const COLORS = {
 
 // Styles
 const styles = StyleSheet.create({
-  scrollContainer: {
-    flexGrow: 1,
-    justifyContent: "flex-start",
-    paddingHorizontal: 20,
-    paddingTop: 100,
-    paddingBottom: 30,
+  header: {
+    alignItems: "center",
+    marginBottom: 20,
+    marginTop: 60,
   },
-  header: { alignItems: "center", marginBottom: 20 },
   logo: { width: 200, height: 200, marginBottom: 12 },
-  title: { fontSize: 28, fontWeight: "700", color: COLORS.textHeader },
   subtitle: { fontSize: 14, color: COLORS.textSub, marginTop: 4 },
   card: {
     backgroundColor: COLORS.card,
@@ -201,6 +194,7 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
     elevation: 6,
     marginBottom: 20,
+    marginHorizontal: 20,
   },
   welcome: {
     fontSize: 22,
@@ -227,13 +221,13 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     borderWidth: 1,
     borderColor: "#ddd",
-    paddingRight: 40, // leave space for eye icon
+    paddingRight: 40,
   },
   eyeButton: {
     position: "absolute",
     right: 16,
     top: "50%",
-    transform: [{ translateY: -16 }], // vertically center
+    transform: [{ translateY: -16 }],
   },
   button: {
     backgroundColor: COLORS.primary,
@@ -249,7 +243,12 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginTop: 8,
   },
-  footer: { flexDirection: "row", justifyContent: "center", marginTop: 15 },
+  footer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    marginTop: 15,
+    marginBottom: 30,
+  },
   footerText: { color: COLORS.textSub },
   footerLink: { color: COLORS.textHeader, fontWeight: "600" },
 });
