@@ -1,16 +1,16 @@
 import { useState, useEffect } from "react";
-import { supabase } from "../supabaseClient"; // Adjust if needed
+import { supabase } from "../supabaseClient";
 
-// Auto-assign priority based on reports in same area
-const assignPriorityByArea = (reports) => {
-  const areaCount = {};
+// Auto-assign priority based on reports in same location
+const assignPriorityByLocation = (reports) => {
+  const locationCount = {};
   reports.forEach((r) => {
-    const key = r.area || r.location || "Unknown";
-    areaCount[key] = (areaCount[key] || 0) + 1;
+    const key = r.location || "Unknown";
+    locationCount[key] = (locationCount[key] || 0) + 1;
   });
 
   return reports.map((r) => {
-    const count = areaCount[r.area || r.location || "Unknown"];
+    const count = locationCount[r.location || "Unknown"];
     let priority = "Low";
     if (count >= 5) priority = "High";
     else if (count >= 3) priority = "Medium";
@@ -28,13 +28,20 @@ export default function Reports() {
   // Fetch reports from Supabase
   useEffect(() => {
     const fetchReports = async () => {
-      const { data, error } = await supabase.from("reports").select("*");
+      const { data, error } = await supabase
+        .from("reports")
+        .select(`
+          *,
+          report_images ( image_url )
+        `);
+
       if (error) {
         console.error("❌ Error fetching reports:", error.message);
       } else {
-        setReports(assignPriorityByArea(data));
+        setReports(assignPriorityByLocation(data));
       }
     };
+
     fetchReports();
   }, []);
 
@@ -50,8 +57,7 @@ export default function Reports() {
       (categoryFilter === "All" || report.issue_type === categoryFilter) &&
       (priorityFilter === "All" || report.priority === priorityFilter) &&
       (searchQuery === "" ||
-        report.location?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        report.area?.toLowerCase().includes(searchQuery.toLowerCase()))
+        report.location?.toLowerCase().includes(searchQuery.toLowerCase()))
     );
   });
 
@@ -72,7 +78,6 @@ export default function Reports() {
   // Save changes to Supabase
   const handleSaveChanges = async () => {
     if (!selectedReport) return;
-
     const { data, error } = await supabase
       .from("reports")
       .update({
@@ -89,14 +94,16 @@ export default function Reports() {
       const updated = reports.map((r) =>
         r.id === selectedReport.id ? { ...selectedReport } : r
       );
-      setReports(assignPriorityByArea(updated));
+      setReports(assignPriorityByLocation(updated));
       setSelectedReport(null);
     }
   };
 
   return (
     <div className="min-h-screen p-6 bg-gray-50">
-      <h1 className="text-3xl font-bold mb-6 text-gray-800">Reports Dashboard</h1>
+      <h1 className="text-3xl font-bold mb-6 text-gray-800">
+        Reports Dashboard
+      </h1>
 
       {/* Dashboard Summary */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
@@ -145,7 +152,7 @@ export default function Reports() {
 
         <input
           type="text"
-          placeholder="Search by location or area..."
+          placeholder="Search by location..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="border rounded-lg p-2 flex-1 min-w-[200px] bg-white shadow-sm"
@@ -159,24 +166,39 @@ export default function Reports() {
             <tr>
               <th className="p-3">ID</th>
               <th className="p-3">Issue</th>
-              <th className="p-3">Area</th>
               <th className="p-3">Location</th>
               <th className="p-3">Priority</th>
               <th className="p-3">Status</th>
+              <th className="p-3">Image</th>
               <th className="p-3 text-center">Action</th>
             </tr>
           </thead>
           <tbody>
             {filteredReports.length > 0 ? (
               filteredReports.map((report) => (
-                <tr key={report.id} className="border-t hover:bg-yellow-50 transition">
+                <tr
+                  key={report.id}
+                  className="border-t hover:bg-yellow-50 transition"
+                >
                   <td className="p-3">{report.id.slice(0, 8)}...</td>
                   <td className="p-3">{report.issue_type}</td>
-                  <td className="p-3">{report.area || "N/A"}</td>
                   <td className="p-3">{report.location}</td>
                   <td className="p-3">{report.priority}</td>
                   <td className="p-3">
-                    <span className={getStatusStyle(report.status)}>{report.status}</span>
+                    <span className={getStatusStyle(report.status)}>
+                      {report.status}
+                    </span>
+                  </td>
+                  <td className="p-3">
+                    {report.report_images?.length > 0 ? (
+                      <img
+                        src={report.report_images[0].image_url}
+                        alt="thumbnail"
+                        className="w-16 h-16 object-cover rounded-lg border"
+                      />
+                    ) : (
+                      <span className="text-gray-400 italic">No image</span>
+                    )}
                   </td>
                   <td className="p-3 text-center">
                     <button
@@ -190,7 +212,10 @@ export default function Reports() {
               ))
             ) : (
               <tr>
-                <td colSpan="7" className="p-4 text-center text-gray-500 italic">
+                <td
+                  colSpan="7"
+                  className="p-4 text-center text-gray-500 italic"
+                >
                   No reports found.
                 </td>
               </tr>
@@ -203,18 +228,38 @@ export default function Reports() {
       {selectedReport && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
           <div className="bg-white rounded-2xl shadow-xl p-6 max-w-lg w-full max-h-[90vh] overflow-y-auto animate-fadeIn">
-            <h2 className="text-xl font-bold mb-4 text-gray-800">Report Details</h2>
+            <h2 className="text-xl font-bold mb-4 text-gray-800">
+              Report Details
+            </h2>
             <div className="space-y-2 text-gray-600">
-              <p><strong>ID:</strong> {selectedReport.id}</p>
-              <p><strong>Issue:</strong> {selectedReport.issue_type}</p>
-              <p><strong>Description:</strong> {selectedReport.description}</p>
-              <p><strong>Area:</strong> {selectedReport.area || "N/A"}</p>
-              <p><strong>Location:</strong> {selectedReport.location}</p>
-              <p><strong>Priority:</strong> {selectedReport.priority}</p>
-              <p><strong>Reporter:</strong> {selectedReport.reporter_name}</p>
-              <p><strong>Email:</strong> {selectedReport.reporter_email}</p>
-              <p><strong>Submitted:</strong> {selectedReport.created_at}</p>
-              <p><strong>Remarks:</strong> {selectedReport.admin_remark || "N/A"}</p>
+              <p>
+                <strong>ID:</strong> {selectedReport.id}
+              </p>
+              <p>
+                <strong>Issue:</strong> {selectedReport.issue_type}
+              </p>
+              <p>
+                <strong>Description:</strong> {selectedReport.description}
+              </p>
+              <p>
+                <strong>Location:</strong> {selectedReport.location}
+              </p>
+              <p>
+                <strong>Priority:</strong> {selectedReport.priority}
+              </p>
+              <p>
+                <strong>Reporter:</strong> {selectedReport.reporter_name}
+              </p>
+              <p>
+                <strong>Email:</strong> {selectedReport.reporter_email}
+              </p>
+              <p>
+                <strong>Submitted:</strong> {selectedReport.created_at}
+              </p>
+              <p>
+                <strong>Remarks:</strong>{" "}
+                {selectedReport.admin_remark || "N/A"}
+              </p>
               <p>
                 <strong>Status:</strong>{" "}
                 <span className={getStatusStyle(selectedReport.status)}>
@@ -223,14 +268,38 @@ export default function Reports() {
               </p>
             </div>
 
+            {/* Uploaded Images Gallery */}
+            {selectedReport.report_images?.length > 0 && (
+              <div className="mt-4">
+                <label className="block font-semibold mb-1">
+                  Uploaded Images
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  {selectedReport.report_images.map((img, idx) => (
+                    <img
+                      key={idx}
+                      src={img.image_url}
+                      alt={`Report Image ${idx + 1}`}
+                      className="w-full h-32 object-cover rounded-lg border"
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Admin Controls */}
             <div className="mt-4 space-y-4">
               <div>
-                <label className="block font-semibold mb-1">Update Status</label>
+                <label className="block font-semibold mb-1">
+                  Update Status
+                </label>
                 <select
                   value={selectedReport.status}
                   onChange={(e) =>
-                    setSelectedReport({ ...selectedReport, status: e.target.value })
+                    setSelectedReport({
+                      ...selectedReport,
+                      status: e.target.value,
+                    })
                   }
                   className="border rounded-lg p-2 w-full"
                 >
@@ -239,6 +308,67 @@ export default function Reports() {
                   <option value="Resolved">Resolved</option>
                 </select>
               </div>
+
+              {/* Photo Upload (only for In Progress / Resolved) */}
+              {["In Progress", "Resolved"].includes(selectedReport.status) && (
+                <div className="mt-3">
+                  <label className="block font-semibold mb-1">
+                    Upload Photo
+                  </label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={async (e) => {
+                      const file = e.target.files[0];
+                      if (!file) return;
+
+                      const filePath = `reports/${selectedReport.id}-${Date.now()}.jpg`;
+
+                      const { error: uploadError } = await supabase.storage
+                        .from("report-photos")
+                        .upload(filePath, file);
+
+                      if (uploadError) {
+                        console.error(
+                          "❌ Upload failed:",
+                          uploadError.message
+                        );
+                        return;
+                      }
+
+                      const { data: urlData } = supabase.storage
+                        .from("report-photos")
+                        .getPublicUrl(filePath);
+
+                      // Insert into report_images table
+                      const { error: insertError } = await supabase
+                        .from("report_images")
+                        .insert({
+                          report_id: selectedReport.id,
+                          image_url: urlData.publicUrl,
+                        });
+
+                      if (insertError) {
+                        console.error(
+                          "❌ Error saving to report_images:",
+                          insertError.message
+                        );
+                        return;
+                      }
+
+                      // Update UI with new image
+                      setSelectedReport({
+                        ...selectedReport,
+                        report_images: [
+                          ...(selectedReport.report_images || []),
+                          { image_url: urlData.publicUrl },
+                        ],
+                      });
+                    }}
+                    className="border rounded-lg p-2 w-full"
+                  />
+                </div>
+              )}
 
               <div>
                 <label className="block font-semibold mb-1">Remarks</label>
