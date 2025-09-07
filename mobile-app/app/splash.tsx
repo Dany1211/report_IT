@@ -8,7 +8,7 @@ export default function SplashScreen() {
   useEffect(() => {
     const timer = setTimeout(() => {
       router.replace("/login"); // navigate after 1.5s
-    }, 1500);
+    }, 1750);
 
     return () => clearTimeout(timer);
   }, []);
@@ -16,9 +16,9 @@ export default function SplashScreen() {
   return (
     <View style={styles.container}>
       {/* Optional logo image */}
-      {/* <Image source={require('../assets/logo.png')} style={styles.logo} /> */}
+      <Image source={require('../assets/images/logo.png')} style={styles.logo} />
 
-      <Text style={styles.title}>ReportIT</Text>
+      {/* <Text style={styles.title}>ReportIT</Text> */}
       <Text style={styles.subtitle}>Making cities better, one report at a time</Text>
     </View>
   );
@@ -44,8 +44,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 30,
   },
   logo: {
-    width: 120,
-    height: 120,
+    width: 200,
+    height: 200,
     marginBottom: 20,
   },
 });
