@@ -18,7 +18,8 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import * as ImagePicker from 'expo-image-picker';
 import * as Location from 'expo-location';
-import { Picker } from '@react-native-picker/picker';
+import { Picker } from "@react-native-picker/picker";
+
 
 const { width } = Dimensions.get('window');
 
@@ -34,12 +35,37 @@ interface Report {
   timestamp: string;
 }
 
+
+
 interface Notification {
   id: string;
   title: string;
   description: string;
   timestamp: string;
 }
+
+const ISSUE_TYPES = [
+  { label: "Potholes", value: "Potholes" },
+  { label: "Streetlights", value: "Streetlights" },
+  { label: "Overflowing Trash Bins", value: "Overflowing Trash Bins" },
+  { label: "Graffiti", value: "Graffiti" },
+  { label: "Broken Sidewalks", value: "Broken Sidewalks" },
+  { label: "Illegal Dumping", value: "Illegal Dumping" },
+  { label: "Noise Complaints", value: "Noise Complaints" },
+  { label: "Water Leakage", value: "Water Leakage" },
+  { label: "Blocked Drains", value: "Blocked Drains" },
+  { label: "Abandoned Vehicles", value: "Abandoned Vehicles" },
+  { label: "Fallen Trees", value: "Fallen Trees" },
+  { label: "Traffic Signals", value: "Traffic Signals" },
+  { label: "Road Damage", value: "Road Damage" },
+  { label: "Missing Signage", value: "Missing Signage" },
+  { label: "Vandalism", value: "Vandalism" },
+  { label: "Public Restroom Issues", value: "Public Restroom Issues" },
+  { label: "Animal Control", value: "Animal Control" },
+  { label: "Hazardous Waste", value: "Hazardous Waste" },
+  { label: "Construction Debris", value: "Construction Debris" },
+  { label: "Other", value: "Other" },
+];
 
 const HomeScreen: React.FC = () => {
   const [modalVisible, setModalVisible] = useState(false);
@@ -155,6 +181,7 @@ const HomeScreen: React.FC = () => {
     const updatedImages = selectedImages.filter((_, i) => i !== index);
     setSelectedImages(updatedImages);
   };
+
 
   const autoDetectLocation = async () => {
     setIsLocating(true); // Start loading animation
@@ -407,33 +434,58 @@ const HomeScreen: React.FC = () => {
             <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
               <Text style={styles.modalTitle}>Report New Issue</Text>
 
-              <Text style={styles.inputLabel}>Issue Type *</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="e.g., Pothole, Street Light, Garbage, Other..."
-                value={issueType}
-                onChangeText={setIssueType}
-              />
+<Text style={styles.inputLabel}>Title *</Text>
 
-              <Text style={styles.inputLabel}>Description *</Text>
-              <View style={styles.descriptionRow}>
-                <TextInput
-                  style={[styles.input, styles.textArea, { flex: 1 }]}
-                  placeholder="Describe the issue in detail..."
-                  multiline={true}
-                  numberOfLines={4}
-                  value={description}
-                  onChangeText={setDescription}
-                />
-                <TouchableOpacity
-                  style={styles.aiButton}
-                  onPress={generateAIDescription}
-                >
-                  <Text style={styles.aiButtonText}>AI</Text>
-                </TouchableOpacity>
-              </View>
+<View style={styles.dropdownContainer}>
+  <Picker
+    selectedValue={issueType}
+    onValueChange={(itemValue) => setIssueType(itemValue)}
+    style={styles.dropdown}
+  >
+    <Picker.Item label="Select an issue type..." value="" />
+    <Picker.Item label="Potholes" value="Potholes" />
+    <Picker.Item label="Streetlights" value="Streetlights" />
+    <Picker.Item label="Overflowing Trash Bins" value="Overflowing Trash Bins" />
+    <Picker.Item label="Graffiti" value="Graffiti" />
+    <Picker.Item label="Broken Sidewalks" value="Broken Sidewalks" />
+    <Picker.Item label="Illegal Dumping" value="Illegal Dumping" />
+    <Picker.Item label="Noise Complaints" value="Noise Complaints" />
+    <Picker.Item label="Water Leakage" value="Water Leakage" />
+    <Picker.Item label="Blocked Drains" value="Blocked Drains" />
+    <Picker.Item label="Abandoned Vehicles" value="Abandoned Vehicles" />
+    <Picker.Item label="Fallen Trees" value="Fallen Trees" />
+    <Picker.Item label="Traffic Signals" value="Traffic Signals" />
+    <Picker.Item label="Road Damage" value="Road Damage" />
+    <Picker.Item label="Missing Signage" value="Missing Signage" />
+    <Picker.Item label="Vandalism" value="Vandalism" />
+    <Picker.Item label="Public Restroom Issues" value="Public Restroom Issues" />
+    <Picker.Item label="Animal Control" value="Animal Control" />
+    <Picker.Item label="Hazardous Waste" value="Hazardous Waste" />
+    <Picker.Item label="Construction Debris" value="Construction Debris" />
+    <Picker.Item label="Other" value="Other" />
+  </Picker>
+</View>
 
-              <Text style={styles.inputLabel}>Urgency Level</Text>
+<Text style={styles.inputLabel}>Description *</Text>
+<View style={styles.descriptionRow}>
+  <TextInput
+    style={[styles.input, styles.textArea, { flex: 1 }]}
+    placeholder="Describe the issue in detail..."
+    multiline={true}
+    numberOfLines={4}
+    value={description}
+    onChangeText={setDescription}
+  />
+  <TouchableOpacity
+    style={styles.aiButton}
+    onPress={generateAIDescription}
+  >
+    <Text style={styles.aiButtonText}>AI</Text>
+  </TouchableOpacity>
+</View>
+
+
+              {/* <Text style={styles.inputLabel}>Urgency Level</Text>
               <View style={styles.urgencySelector}>
                 <TouchableOpacity
                   style={[styles.urgencyOption, urgency === 'low' && { backgroundColor: '#2ECC71' }]}
@@ -453,7 +505,7 @@ const HomeScreen: React.FC = () => {
                 >
                   <Text style={[styles.urgencyOptionText, urgency === 'high' && { color: '#FFFFFF' }]}>High</Text>
                 </TouchableOpacity>
-              </View>
+              </View> */}
 
               <Text style={styles.inputLabel}>Photos (Optional)</Text>
               <TouchableOpacity style={styles.photoButton} onPress={pickImages}>
@@ -1119,6 +1171,24 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
     padding: 12,
     flex: 1,
+  },
+  dropdownContainer: {
+    borderWidth: 1,
+    borderColor: "#E0E0E0",
+    borderRadius: 8,
+    height: 50,
+    backgroundColor: "#F9F9F9",
+    overflow: "hidden",
+    marginTop: 8,
+
+  },
+  dropdown: {
+    height: 50,
+    paddingHorizontal: 10,
+    fontSize: 15,
+    color: "#333",
+
+    
   },
 });
 
