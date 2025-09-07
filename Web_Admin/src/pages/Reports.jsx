@@ -25,6 +25,7 @@ export default function Reports() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedReport, setSelectedReport] = useState(null);
   const [message, setMessage] = useState("");
+  const [imagePreview, setImagePreview] = useState(null); // for fullscreen preview
 
   // Fetch reports + images
   useEffect(() => {
@@ -108,7 +109,7 @@ export default function Reports() {
       return;
     }
 
-    const filePath = `reports/${selectedReport.id}-${Date.now()}.jpg`;
+    const filePath = `reports/${selectedReport.id}-${Date.now()}-${file.name}`;
 
     // Upload to admin bucket
     const { error: uploadError } = await supabase.storage
@@ -149,6 +150,44 @@ export default function Reports() {
       ],
     });
     setMessage("✅ Admin image uploaded successfully!");
+  };
+
+  // Delete admin image
+  const handleDeleteAdminImage = async (imageUrl) => {
+    if (!selectedReport) return;
+
+    const fileName = imageUrl.split("/").pop(); // extract file name
+    const { error: deleteError } = await supabase.storage
+      .from("admin-report-images")
+      .remove([`reports/${fileName}`]);
+
+    if (deleteError) {
+      console.error("❌ Error deleting from storage:", deleteError.message);
+      setMessage("❌ Failed to delete image from storage.");
+      return;
+    }
+
+    const { error: dbError } = await supabase
+      .from("admin_report_images")
+      .delete()
+      .eq("image_url", imageUrl)
+      .eq("report_id", selectedReport.id);
+
+    if (dbError) {
+      console.error("❌ Error deleting from DB:", dbError.message);
+      setMessage("❌ Failed to delete image from DB.");
+      return;
+    }
+
+    // Update UI
+    setSelectedReport({
+      ...selectedReport,
+      admin_report_images: selectedReport.admin_report_images.filter(
+        (img) => img.image_url !== imageUrl
+      ),
+    });
+
+    setMessage("✅ Admin image deleted successfully!");
   };
 
   return (
@@ -284,34 +323,15 @@ export default function Reports() {
               Report Details
             </h2>
             <div className="space-y-2 text-gray-600">
-              <p>
-                <strong>ID:</strong> {selectedReport.id}
-              </p>
-              <p>
-                <strong>Issue:</strong> {selectedReport.issue_type}
-              </p>
-              <p>
-                <strong>Description:</strong> {selectedReport.description}
-              </p>
-              <p>
-                <strong>Location:</strong> {selectedReport.location}
-              </p>
-              <p>
-                <strong>Priority:</strong> {selectedReport.priority}
-              </p>
-              <p>
-                <strong>Reporter:</strong> {selectedReport.reporter_name}
-              </p>
-              <p>
-                <strong>Email:</strong> {selectedReport.reporter_email}
-              </p>
-              <p>
-                <strong>Submitted:</strong> {selectedReport.created_at}
-              </p>
-              <p>
-                <strong>Remarks:</strong>{" "}
-                {selectedReport.admin_remark || "N/A"}
-              </p>
+              <p><strong>ID:</strong> {selectedReport.id}</p>
+              <p><strong>Issue:</strong> {selectedReport.issue_type}</p>
+              <p><strong>Description:</strong> {selectedReport.description}</p>
+              <p><strong>Location:</strong> {selectedReport.location}</p>
+              <p><strong>Priority:</strong> {selectedReport.priority}</p>
+              <p><strong>Reporter:</strong> {selectedReport.reporter_name}</p>
+              <p><strong>Email:</strong> {selectedReport.reporter_email}</p>
+              <p><strong>Submitted:</strong> {selectedReport.created_at}</p>
+              <p><strong>Remarks:</strong> {selectedReport.admin_remark || "N/A"}</p>
               <p>
                 <strong>Status:</strong>{" "}
                 <span className={getStatusStyle(selectedReport.status)}>
@@ -320,31 +340,68 @@ export default function Reports() {
               </p>
             </div>
 
-            {/* Uploaded Images Gallery */}
-            <div className="mt-4">
-              <label className="block font-semibold mb-1">
-                Uploaded Images (User & Admin)
-              </label>
-              <div className="grid grid-cols-2 gap-2">
-                {[...(selectedReport.report_images || []), ...(selectedReport.admin_report_images || [])].map(
-                  (img, idx) => (
-                    <img
-                      key={idx}
-                      src={img.image_url}
-                      alt={`Report Image ${idx + 1}`}
-                      className="w-full h-32 object-cover rounded-lg border"
-                    />
-                  )
-                )}
+            {/* User Uploaded Images */}
+            {selectedReport.report_images?.length > 0 && (
+              <div className="mt-4">
+                <label className="block font-semibold mb-1">User Uploaded Images</label>
+                <div className="grid grid-cols-3 gap-2">
+                  {selectedReport.report_images.map((img, idx) => (
+                    <div key={idx} className="relative group">
+                      <img
+                        src={img.image_url}
+                        alt={`User Image ${idx + 1}`}
+                        className="w-full h-24 object-cover rounded-lg border"
+                      />
+                      <button
+                        onClick={() => setImagePreview(img.image_url)}
+                        className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition"
+                      >
+                        <span className="text-white text-xl">👁</span>
+                      </button>
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
+
+            {/* Admin Uploaded Images */}
+            {selectedReport.admin_report_images?.length > 0 && (
+              <div className="mt-4">
+                <label className="block font-semibold mb-1">Admin Uploaded Images</label>
+                <div className="grid grid-cols-3 gap-2">
+                  {selectedReport.admin_report_images.map((img, idx) => (
+                    <div key={idx} className="relative group">
+                      <img
+                        src={img.image_url}
+                        alt={`Admin Image ${idx + 1}`}
+                        className="w-full h-24 object-cover rounded-lg border"
+                      />
+                      <div className="absolute inset-0 flex items-center justify-center gap-3 bg-black/40 opacity-0 group-hover:opacity-100 transition">
+                        {/* View */}
+                        <button
+                          onClick={() => setImagePreview(img.image_url)}
+                          className="text-white text-xl"
+                        >
+                          👁
+                        </button>
+                        {/* Delete */}
+                        <button
+                          onClick={() => handleDeleteAdminImage(img.image_url)}
+                          className="text-red-500 text-xl"
+                        >
+                          🗑
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Admin Controls */}
             <div className="mt-4 space-y-4">
               <div>
-                <label className="block font-semibold mb-1">
-                  Update Status
-                </label>
+                <label className="block font-semibold mb-1">Update Status</label>
                 <select
                   value={selectedReport.status}
                   onChange={(e) =>
@@ -364,9 +421,7 @@ export default function Reports() {
               {/* Admin Upload */}
               {["In Progress", "Resolved"].includes(selectedReport.status) && (
                 <div className="mt-3">
-                  <label className="block font-semibold mb-1">
-                    Upload Admin Photo
-                  </label>
+                  <label className="block font-semibold mb-1">Upload Admin Photo</label>
                   <input
                     type="file"
                     accept="image/*"
@@ -415,6 +470,23 @@ export default function Reports() {
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Image Preview Modal */}
+      {imagePreview && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
+          <img
+            src={imagePreview}
+            alt="Preview"
+            className="max-w-[90%] max-h-[90%] rounded-xl shadow-lg"
+          />
+          <button
+            onClick={() => setImagePreview(null)}
+            className="absolute top-6 right-6 text-white text-3xl"
+          >
+            ✖
+          </button>
         </div>
       )}
 
