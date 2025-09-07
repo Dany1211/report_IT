@@ -28,7 +28,7 @@ export default function Analytics() {
   }, []);
 
   if (loading) {
-    return <p className="p-6">Loading analytics...</p>;
+    return <p className="p-6 text-[#555555]">Loading analytics...</p>;
   }
 
   // ---------- KPI Overview ----------
@@ -79,50 +79,56 @@ export default function Analytics() {
   ];
 
   // Theme colors
-  const COLORS = ["#facc15", "#3b82f6", "#6b7280", "#ef4444"];
+  const COLORS = ["#FFA500", "#32CD32", "#FF4500", "#3b82f6"]; // adjusted
+
+  const statusColors = {
+    "Pending": "#FFB347",
+    "Resolved": "#32CD32",
+    "Alert": "#FF4500"
+  };
 
   return (
-    <div className="space-y-10 p-6 bg-gray-50 min-h-screen">
+    <div className="min-h-screen p-6 bg-gradient-to-b from-[#FFF9F0] to-[#FFF1C6]">
       {/* KPI Overview */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="bg-white border border-gray-200 shadow-sm rounded-xl p-4 text-center">
-          <h3 className="text-gray-500">Total Issues</h3>
-          <p className="text-2xl font-bold text-gray-900">{totalIssues}</p>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+        <div className="bg-white shadow-sm rounded-xl p-4 text-center border border-gray-100">
+          <h3 className="text-[#333333] text-gray-500 mb-2">Total Issues</h3>
+          <p className="text-2xl font-bold text-[#333333]">{totalIssues}</p>
         </div>
-        <div className="bg-white border border-gray-200 shadow-sm rounded-xl p-4 text-center">
-          <h3 className="text-gray-500">Resolved</h3>
-          <p className="text-2xl font-bold text-green-600">{resolvedCount}</p>
+        <div className="bg-white shadow-sm rounded-xl p-4 text-center border border-gray-100">
+          <h3 className="text-[#333333] text-gray-500 mb-2">Resolved</h3>
+          <p className="text-2xl font-bold text-[#32CD32]">{resolvedCount}</p>
         </div>
-        <div className="bg-white border border-gray-200 shadow-sm rounded-xl p-4 text-center">
-          <h3 className="text-gray-500">Pending</h3>
-          <p className="text-2xl font-bold text-yellow-500">{pendingCount}</p>
+        <div className="bg-white shadow-sm rounded-xl p-4 text-center border border-gray-100">
+          <h3 className="text-[#333333] text-gray-500 mb-2">Pending</h3>
+          <p className="text-2xl font-bold text-[#FFB347]">{pendingCount}</p>
         </div>
-        <div className="bg-white border border-gray-200 shadow-sm rounded-xl p-4 text-center">
-          <h3 className="text-gray-500">Avg. Resolution Time</h3>
-          <p className="text-2xl font-bold text-blue-600">{avgResolutionTime}h</p>
+        <div className="bg-white shadow-sm rounded-xl p-4 text-center border border-gray-100">
+          <h3 className="text-[#333333] text-gray-500 mb-2">Avg. Resolution Time</h3>
+          <p className="text-2xl font-bold text-[#FFA500]">{avgResolutionTime}h</p>
         </div>
       </div>
 
       {/* Trend Chart */}
-      <div className="bg-white border border-gray-200 shadow-sm rounded-xl p-6">
-        <h2 className="text-lg font-semibold text-gray-700 mb-4">Reported vs Resolved (Monthly)</h2>
+      <div className="bg-white shadow-sm rounded-xl p-6 border border-gray-100 mb-10">
+        <h2 className="text-lg font-semibold text-[#333333] mb-4">Reported vs Resolved (Monthly)</h2>
         <ResponsiveContainer width="100%" height={300}>
           <BarChart data={issuesTrend} barSize={40}>
             <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-            <XAxis dataKey="month" stroke="#374151" />
-            <YAxis stroke="#374151" />
+            <XAxis dataKey="month" stroke="#555555" />
+            <YAxis stroke="#555555" />
             <Tooltip />
             <Legend />
-            <Bar dataKey="reported" fill="#facc15" radius={[6, 6, 0, 0]} />
-            <Bar dataKey="resolved" fill="#3b82f6" radius={[6, 6, 0, 0]} />
+            <Bar dataKey="reported" fill="#FFA500" radius={[6, 6, 0, 0]} />
+            <Bar dataKey="resolved" fill="#32CD32" radius={[6, 6, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
       </div>
 
       {/* Breakdown Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="bg-white border border-gray-200 shadow-sm rounded-xl p-6">
-          <h2 className="text-lg font-semibold text-gray-700 mb-4">Issues by Category</h2>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-10">
+        <div className="bg-white shadow-sm rounded-xl p-6 border border-gray-100">
+          <h2 className="text-lg font-semibold text-[#333333] mb-4">Issues by Category</h2>
           <ResponsiveContainer width="100%" height={250}>
             <PieChart>
               <Pie data={categoryData} dataKey="value" cx="50%" cy="50%" outerRadius={80} label>
@@ -135,13 +141,13 @@ export default function Analytics() {
           </ResponsiveContainer>
         </div>
 
-        <div className="bg-white border border-gray-200 shadow-sm rounded-xl p-6">
-          <h2 className="text-lg font-semibold text-gray-700 mb-4">Issues by Status</h2>
+        <div className="bg-white shadow-sm rounded-xl p-6 border border-gray-100">
+          <h2 className="text-lg font-semibold text-[#333333] mb-4">Issues by Status</h2>
           <ResponsiveContainer width="100%" height={250}>
             <PieChart>
               <Pie data={statusData} dataKey="value" cx="50%" cy="50%" outerRadius={80} label>
                 {statusData.map((entry, index) => (
-                  <Cell key={index} fill={COLORS[index % COLORS.length]} />
+                  <Cell key={index} fill={statusColors[entry.name] || COLORS[index % COLORS.length]} />
                 ))}
               </Pie>
               <Tooltip />
@@ -149,8 +155,8 @@ export default function Analytics() {
           </ResponsiveContainer>
         </div>
 
-        <div className="bg-white border border-gray-200 shadow-sm rounded-xl p-6">
-          <h2 className="text-lg font-semibold text-gray-700 mb-4">Issues by Priority</h2>
+        <div className="bg-white shadow-sm rounded-xl p-6 border border-gray-100">
+          <h2 className="text-lg font-semibold text-[#333333] mb-4">Issues by Priority</h2>
           <ResponsiveContainer width="100%" height={250}>
             <PieChart>
               <Pie data={priorityData} dataKey="value" cx="50%" cy="50%" outerRadius={80} label>
@@ -165,16 +171,16 @@ export default function Analytics() {
       </div>
 
       {/* Performance Chart */}
-      <div className="bg-white border border-gray-200 shadow-sm rounded-xl p-6">
-        <h2 className="text-lg font-semibold text-gray-700 mb-4">Avg. Resolution Time (Weekly)</h2>
+      <div className="bg-white shadow-sm rounded-xl p-6 border border-gray-100 mb-10">
+        <h2 className="text-lg font-semibold text-[#333333] mb-4">Avg. Resolution Time (Weekly)</h2>
         <ResponsiveContainer width="100%" height={300}>
           <LineChart data={resolutionTimeTrend}>
             <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-            <XAxis dataKey="week" stroke="#374151" />
-            <YAxis stroke="#374151" label={{ value: "Hours", angle: -90, position: "insideLeft" }} />
+            <XAxis dataKey="week" stroke="#555555" />
+            <YAxis stroke="#555555" label={{ value: "Hours", angle: -90, position: "insideLeft" }} />
             <Tooltip />
             <Legend />
-            <Line type="monotone" dataKey="avgTime" stroke="#facc15" strokeWidth={3} />
+            <Line type="monotone" dataKey="avgTime" stroke="#FFA500" strokeWidth={3} />
           </LineChart>
         </ResponsiveContainer>
       </div>

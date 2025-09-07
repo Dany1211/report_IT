@@ -64,7 +64,9 @@ export default function DashboardLayout() {
       </aside>
 
       {/* Main content */}
-      <main className="flex-1 bg-gradient-to-br from-[#FFF9F0] to-[#FFF1C6] p-6 overflow-y-auto">
+    <main className="flex-1 bg-gradient-to-br from-[#FFF7E5] to-white p-6 overflow-y-auto">
+
+
         <Outlet />
       </main>
     </div>

@@ -17,12 +17,14 @@ const StatCard = ({ title, value, icon }) => (
 
 // Status color helper
 const getStatusColor = (status) => {
-  switch (status) {
-    case "Pending":
+  if (!status) return "text-gray-500 bg-gray-500/10";
+  const normalized = status.trim().toLowerCase();
+  switch (normalized) {
+    case "pending":
       return "text-[#FF4500] bg-[#FF4500]/10";
-    case "In Progress":
+    case "in progress":
       return "text-[#FFB347] bg-[#FFB347]/10";
-    case "Resolved":
+    case "resolved":
       return "text-[#32CD32] bg-[#32CD32]/10";
     default:
       return "text-gray-500 bg-gray-500/10";
@@ -90,6 +92,7 @@ export default function Dashboard() {
       if (error) {
         console.error("Error fetching reports:", error.message);
       } else {
+        console.log("Fetched reports:", data); // ✅ Inspect this in browser console
         setReports(data);
       }
       setLoading(false);
@@ -98,10 +101,10 @@ export default function Dashboard() {
     fetchReports();
   }, []);
 
-  // calculate stats
-  const pendingCount = reports.filter((r) => r.status === "Pending").length;
-  const resolvedCount = reports.filter((r) => r.status === "Resolved").length;
-  const inProgressCount = reports.filter((r) => r.status === "In Progress").length;
+  // calculate stats robustly
+  const pendingCount = reports.filter((r) => r.status?.trim().toLowerCase() === "pending").length;
+  const resolvedCount = reports.filter((r) => r.status?.trim().toLowerCase() === "resolved").length;
+  const inProgressCount = reports.filter((r) => r.status?.trim().toLowerCase() === "in progress").length;
 
   return (
     <div className="min-h-screen w-full bg-gradient-to-br from-[#FFF9F0] to-[#FFF1C6] overflow-hidden">
