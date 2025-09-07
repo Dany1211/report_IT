@@ -1,41 +1,81 @@
+import { useEffect, useState } from "react";
+import { supabase } from "../supabaseClient"; // adjust path if needed
 import {
   BarChart, Bar, LineChart, Line, PieChart, Pie, Cell,
   CartesianGrid, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer
 } from "recharts";
+import { format } from "date-fns";
 
 export default function Analytics() {
-  // Mock Data (replace with backend API later)
-  const issuesTrend = [
-    { month: "Jan", reported: 120, resolved: 100 },
-    { month: "Feb", reported: 140, resolved: 110 },
-    { month: "Mar", reported: 180, resolved: 150 },
-    { month: "Apr", reported: 200, resolved: 170 },
-  ];
+  const [reports, setReports] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const categoryData = [
-    { name: "Potholes", value: 45 },
-    { name: "Streetlights", value: 30 },
-    { name: "Trash", value: 25 },
-    { name: "Graffiti", value: 15 },
-  ];
+  useEffect(() => {
+    const fetchReports = async () => {
+      const { data, error } = await supabase
+        .from("reports")
+        .select("*");
 
-  const statusData = [
-    { name: "Resolved", value: 150 },
-    { name: "Pending", value: 60 },
-    { name: "In Progress", value: 40 },
-  ];
+      if (error) {
+        console.error("Error fetching reports:", error);
+      } else {
+        setReports(data || []);
+      }
+      setLoading(false);
+    };
 
+    fetchReports();
+  }, []);
+
+  if (loading) {
+    return <p className="p-6">Loading analytics...</p>;
+  }
+
+  // ---------- KPI Overview ----------
+  const totalIssues = reports.length;
+  const resolvedCount = reports.filter(r => r.status === "Resolved").length;
+  const pendingCount = reports.filter(r => r.status === "Pending").length;
+  const avgResolutionTime = 4.5; // placeholder until resolved_at column exists
+
+  // ---------- Monthly Trend ----------
+  const monthlyMap = {};
+  reports.forEach(r => {
+    const month = format(new Date(r.created_at), "MMM");
+    if (!monthlyMap[month]) {
+      monthlyMap[month] = { month, reported: 0, resolved: 0 };
+    }
+    monthlyMap[month].reported++;
+    if (r.status === "Resolved") {
+      monthlyMap[month].resolved++;
+    }
+  });
+  const issuesTrend = Object.values(monthlyMap);
+
+  // ---------- Category Breakdown ----------
+  const categoryMap = {};
+  reports.forEach(r => {
+    categoryMap[r.issue_type] = (categoryMap[r.issue_type] || 0) + 1;
+  });
+  const categoryData = Object.entries(categoryMap).map(([name, value]) => ({ name, value }));
+
+  // ---------- Status Breakdown ----------
+  const statusMap = {};
+  reports.forEach(r => {
+    statusMap[r.status] = (statusMap[r.status] || 0) + 1;
+  });
+  const statusData = Object.entries(statusMap).map(([name, value]) => ({ name, value }));
+
+  // ---------- Priority (placeholder until column exists) ----------
   const priorityData = [
-    { name: "High", value: 20 },
-    { name: "Medium", value: 50 },
-    { name: "Low", value: 30 },
+    { name: "High", value: 0 },
+    { name: "Medium", value: 0 },
+    { name: "Low", value: 0 },
   ];
 
+  // ---------- Resolution Time Trend (placeholder) ----------
   const resolutionTimeTrend = [
-    { week: "Week 1", avgTime: 6 },
-    { week: "Week 2", avgTime: 5 },
-    { week: "Week 3", avgTime: 4.5 },
-    { week: "Week 4", avgTime: 4 },
+    { week: "Week 1", avgTime: 0 },
+    { week: "Week 2", avgTime: 0 },
   ];
 
   // Theme colors
@@ -47,19 +87,19 @@ export default function Analytics() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         <div className="bg-white border border-gray-200 shadow-sm rounded-xl p-4 text-center">
           <h3 className="text-gray-500">Total Issues</h3>
-          <p className="text-2xl font-bold text-gray-900">250</p>
+          <p className="text-2xl font-bold text-gray-900">{totalIssues}</p>
         </div>
         <div className="bg-white border border-gray-200 shadow-sm rounded-xl p-4 text-center">
           <h3 className="text-gray-500">Resolved</h3>
-          <p className="text-2xl font-bold text-green-600">150</p>
+          <p className="text-2xl font-bold text-green-600">{resolvedCount}</p>
         </div>
         <div className="bg-white border border-gray-200 shadow-sm rounded-xl p-4 text-center">
           <h3 className="text-gray-500">Pending</h3>
-          <p className="text-2xl font-bold text-yellow-500">60</p>
+          <p className="text-2xl font-bold text-yellow-500">{pendingCount}</p>
         </div>
         <div className="bg-white border border-gray-200 shadow-sm rounded-xl p-4 text-center">
           <h3 className="text-gray-500">Avg. Resolution Time</h3>
-          <p className="text-2xl font-bold text-blue-600">4.5h</p>
+          <p className="text-2xl font-bold text-blue-600">{avgResolutionTime}h</p>
         </div>
       </div>
 
