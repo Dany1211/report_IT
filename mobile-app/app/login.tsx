@@ -18,7 +18,6 @@ import { supabase } from "../supabaseClient"; // Make sure your supabaseClient i
 import { Ionicons } from "@expo/vector-icons";
 import { Linking } from "react-native";
 
-
 export default function LoginScreen() {
   const router = useRouter();
   const [email, setEmail] = useState("");
@@ -31,26 +30,28 @@ export default function LoginScreen() {
       Alert.alert("Error", "Please enter both email and password.");
       return;
     }
-  
+
     try {
       setLoading(true);
-  
+
       // 1️⃣ Sign in with Supabase Auth
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
+
       if (error) throw error;
       if (!data.user) throw new Error("No user found");
-  
+
       // 2️⃣ Fetch role from profiles table
       const { data: profile, error: profileError } = await supabase
         .from("profiles")
         .select("role")
         .eq("id", data.user.id)
         .single();
+
       if (profileError) throw profileError;
-  
+
       // 3️⃣ Check role
       if (profile.role === "admin") {
         Alert.alert(
@@ -60,7 +61,9 @@ export default function LoginScreen() {
             {
               text: "Open Portal",
               onPress: () =>
-                Linking.openURL("https://your-admin-portal.com"), // <-- replace with your admin portal URL
+                Linking.openURL(
+                  "https://www.linkedin.com/in/shubham-kendre-23b605285/"
+                ), // <-- replace with your admin portal URL
             },
             { text: "OK", style: "cancel" },
           ]
@@ -75,7 +78,6 @@ export default function LoginScreen() {
       setLoading(false);
     }
   };
-  
 
   return (
     <KeyboardAvoidingView
@@ -83,19 +85,26 @@ export default function LoginScreen() {
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
       <LinearGradient colors={["#FFF9F0", "#FFF1C6"]} style={{ flex: 1 }}>
-        <ScrollView contentContainerStyle={styles.scrollContainer} keyboardShouldPersistTaps="handled">
-          
+        <ScrollView
+          contentContainerStyle={styles.scrollContainer}
+          keyboardShouldPersistTaps="handled"
+        >
           {/* Header */}
           <View style={styles.header}>
-            <Image source={require("../assets/images/splash-icon.png")} style={styles.logo} />
-            <Text style={styles.title}>ReportIT</Text>
+            <Image
+              source={require("../assets/images/logo.png")}
+              style={styles.logo}
+            />
+            {/* <Text style={styles.title}>ReportIT</Text> */}
             <Text style={styles.subtitle}>Your City. Your Voice.</Text>
           </View>
 
           {/* Card */}
           <View style={styles.card}>
             <Text style={styles.welcome}>Welcome Back</Text>
-            <Text style={styles.cardSubtitle}>Sign in to continue making a difference</Text>
+            <Text style={styles.cardSubtitle}>
+              Sign in to continue making a difference
+            </Text>
 
             {/* Form */}
             <View style={styles.form}>
@@ -110,7 +119,7 @@ export default function LoginScreen() {
 
               <View style={styles.passwordContainer}>
                 <TextInput
-                  style={[styles.input, { flex: 1 }]}
+                  style={styles.input}
                   placeholder="Password"
                   placeholderTextColor="#888"
                   secureTextEntry={!showPassword}
@@ -123,7 +132,7 @@ export default function LoginScreen() {
                 >
                   <Ionicons
                     name={showPassword ? "eye" : "eye-off"}
-                    size={24}
+                    size={20}
                     color="#888"
                   />
                 </TouchableOpacity>
@@ -137,7 +146,11 @@ export default function LoginScreen() {
                 )}
               </TouchableOpacity>
 
-              <TouchableOpacity onPress={() => Alert.alert("Forgot Password", "Feature coming soon!")}>
+              <TouchableOpacity
+                onPress={() =>
+                  Alert.alert("Forgot Password", "Feature coming soon!")
+                }
+              >
                 <Text style={styles.link}>Forgot your password?</Text>
               </TouchableOpacity>
             </View>
@@ -168,21 +181,74 @@ const COLORS = {
 
 // Styles
 const styles = StyleSheet.create({
-  scrollContainer: { flexGrow: 1, justifyContent: "flex-start", paddingHorizontal: 20, paddingTop: 100, paddingBottom: 30 },
+  scrollContainer: {
+    flexGrow: 1,
+    justifyContent: "flex-start",
+    paddingHorizontal: 20,
+    paddingTop: 100,
+    paddingBottom: 30,
+  },
   header: { alignItems: "center", marginBottom: 20 },
-  logo: { width: 80, height: 80, marginBottom: 12 },
+  logo: { width: 200, height: 200, marginBottom: 12 },
   title: { fontSize: 28, fontWeight: "700", color: COLORS.textHeader },
   subtitle: { fontSize: 14, color: COLORS.textSub, marginTop: 4 },
-  card: { backgroundColor: COLORS.card, borderRadius: 20, padding: 24, shadowColor: "#000", shadowOpacity: 0.1, shadowRadius: 6, elevation: 6, marginBottom: 20 },
-  welcome: { fontSize: 22, fontWeight: "bold", color: COLORS.textHeader, textAlign: "center", marginBottom: 6 },
-  cardSubtitle: { fontSize: 14, color: COLORS.textSub, textAlign: "center", marginBottom: 20 },
+  card: {
+    backgroundColor: COLORS.card,
+    borderRadius: 20,
+    padding: 24,
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    elevation: 6,
+    marginBottom: 20,
+  },
+  welcome: {
+    fontSize: 22,
+    fontWeight: "bold",
+    color: COLORS.textHeader,
+    textAlign: "center",
+    marginBottom: 6,
+  },
+  cardSubtitle: {
+    fontSize: 14,
+    color: COLORS.textSub,
+    textAlign: "center",
+    marginBottom: 20,
+  },
   form: { marginBottom: 10 },
-  input: { backgroundColor: "#fff", padding: 12, borderRadius: 12, marginBottom: 15, borderWidth: 1, borderColor: "#ddd" },
-  passwordContainer: { flexDirection: "row", alignItems: "center" },
-  eyeButton: { padding: 8 },
-  button: { backgroundColor: COLORS.primary, paddingVertical: 14, borderRadius: 12, alignItems: "center", marginBottom: 12 },
+  passwordContainer: {
+    position: "relative",
+    width: "100%",
+  },
+  input: {
+    backgroundColor: "#fff",
+    padding: 12,
+    borderRadius: 12,
+    marginBottom: 15,
+    borderWidth: 1,
+    borderColor: "#ddd",
+    paddingRight: 40, // leave space for eye icon
+  },
+  eyeButton: {
+    position: "absolute",
+    right: 16,
+    top: "50%",
+    transform: [{ translateY: -16 }], // vertically center
+  },
+  button: {
+    backgroundColor: COLORS.primary,
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: "center",
+    marginBottom: 12,
+  },
   buttonText: { color: COLORS.buttonText, fontSize: 16, fontWeight: "600" },
-  link: { color: COLORS.primary, fontWeight: "500", textAlign: "center", marginTop: 8 },
+  link: {
+    color: COLORS.primary,
+    fontWeight: "500",
+    textAlign: "center",
+    marginTop: 8,
+  },
   footer: { flexDirection: "row", justifyContent: "center", marginTop: 15 },
   footerText: { color: COLORS.textSub },
   footerLink: { color: COLORS.textHeader, fontWeight: "600" },

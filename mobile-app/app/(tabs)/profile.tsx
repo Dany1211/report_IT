@@ -76,7 +76,7 @@ const ProfileScreen = () => {
           style: 'destructive',
           onPress: () => {
             console.log('User logged out');
-            router.push("/login");
+            router.replace("/login");
           }
         },
       ]
