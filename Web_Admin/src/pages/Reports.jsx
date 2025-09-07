@@ -25,7 +25,7 @@ export default function Reports() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedReport, setSelectedReport] = useState(null);
 
-  // Fetch reports from Supabase
+  // Fetch reports from Supabase (with images)
   useEffect(() => {
     const fetchReports = async () => {
       const { data, error } = await supabase
@@ -232,34 +232,15 @@ export default function Reports() {
               Report Details
             </h2>
             <div className="space-y-2 text-gray-600">
-              <p>
-                <strong>ID:</strong> {selectedReport.id}
-              </p>
-              <p>
-                <strong>Issue:</strong> {selectedReport.issue_type}
-              </p>
-              <p>
-                <strong>Description:</strong> {selectedReport.description}
-              </p>
-              <p>
-                <strong>Location:</strong> {selectedReport.location}
-              </p>
-              <p>
-                <strong>Priority:</strong> {selectedReport.priority}
-              </p>
-              <p>
-                <strong>Reporter:</strong> {selectedReport.reporter_name}
-              </p>
-              <p>
-                <strong>Email:</strong> {selectedReport.reporter_email}
-              </p>
-              <p>
-                <strong>Submitted:</strong> {selectedReport.created_at}
-              </p>
-              <p>
-                <strong>Remarks:</strong>{" "}
-                {selectedReport.admin_remark || "N/A"}
-              </p>
+              <p><strong>ID:</strong> {selectedReport.id}</p>
+              <p><strong>Issue:</strong> {selectedReport.issue_type}</p>
+              <p><strong>Description:</strong> {selectedReport.description}</p>
+              <p><strong>Location:</strong> {selectedReport.location}</p>
+              <p><strong>Priority:</strong> {selectedReport.priority}</p>
+              <p><strong>Reporter:</strong> {selectedReport.reporter_name}</p>
+              <p><strong>Email:</strong> {selectedReport.reporter_email}</p>
+              <p><strong>Submitted:</strong> {selectedReport.created_at}</p>
+              <p><strong>Remarks:</strong> {selectedReport.admin_remark || "N/A"}</p>
               <p>
                 <strong>Status:</strong>{" "}
                 <span className={getStatusStyle(selectedReport.status)}>
@@ -271,9 +252,7 @@ export default function Reports() {
             {/* Uploaded Images Gallery */}
             {selectedReport.report_images?.length > 0 && (
               <div className="mt-4">
-                <label className="block font-semibold mb-1">
-                  Uploaded Images
-                </label>
+                <label className="block font-semibold mb-1">Uploaded Images</label>
                 <div className="grid grid-cols-2 gap-2">
                   {selectedReport.report_images.map((img, idx) => (
                     <img
@@ -290,9 +269,7 @@ export default function Reports() {
             {/* Admin Controls */}
             <div className="mt-4 space-y-4">
               <div>
-                <label className="block font-semibold mb-1">
-                  Update Status
-                </label>
+                <label className="block font-semibold mb-1">Update Status</label>
                 <select
                   value={selectedReport.status}
                   onChange={(e) =>
@@ -312,9 +289,7 @@ export default function Reports() {
               {/* Photo Upload (only for In Progress / Resolved) */}
               {["In Progress", "Resolved"].includes(selectedReport.status) && (
                 <div className="mt-3">
-                  <label className="block font-semibold mb-1">
-                    Upload Photo
-                  </label>
+                  <label className="block font-semibold mb-1">Upload Photo</label>
                   <input
                     type="file"
                     accept="image/*"
@@ -322,17 +297,14 @@ export default function Reports() {
                       const file = e.target.files[0];
                       if (!file) return;
 
-                      const filePath = `reports/${selectedReport.id}-${Date.now()}.jpg`;
+                      const filePath = `reports/${selectedReport.id}-${Date.now()}-${file.name}`;
 
                       const { error: uploadError } = await supabase.storage
                         .from("report-photos")
                         .upload(filePath, file);
 
                       if (uploadError) {
-                        console.error(
-                          "❌ Upload failed:",
-                          uploadError.message
-                        );
+                        console.error("❌ Upload failed:", uploadError.message);
                         return;
                       }
 
@@ -340,28 +312,26 @@ export default function Reports() {
                         .from("report-photos")
                         .getPublicUrl(filePath);
 
-                      // Insert into report_images table
+                      const publicUrl = urlData.publicUrl;
+
                       const { error: insertError } = await supabase
                         .from("report_images")
                         .insert({
                           report_id: selectedReport.id,
-                          image_url: urlData.publicUrl,
+                          image_url: publicUrl,
+                          uploaded_by: "admin",
                         });
 
                       if (insertError) {
-                        console.error(
-                          "❌ Error saving to report_images:",
-                          insertError.message
-                        );
+                        console.error("❌ Error saving to report_images:", insertError.message);
                         return;
                       }
 
-                      // Update UI with new image
                       setSelectedReport({
                         ...selectedReport,
                         report_images: [
                           ...(selectedReport.report_images || []),
-                          { image_url: urlData.publicUrl },
+                          { image_url: publicUrl, uploaded_by: "admin" },
                         ],
                       });
                     }}
