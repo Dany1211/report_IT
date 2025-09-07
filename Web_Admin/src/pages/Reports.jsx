@@ -1,22 +1,19 @@
 import { useState, useEffect } from "react";
-import { supabase } from "../supabaseClient"; // adjust import path
+import { supabase } from "../supabaseClient"; // adjust path if needed
 
-// ✅ Assign priority by area (or fallback to location if area is null)
+// Auto-assign priority based on reports in same area
 const assignPriorityByArea = (reports) => {
   const areaCount = {};
   reports.forEach((r) => {
-    const key = r.area || r.location;
+    const key = r.area || r.location || "Unknown";
     areaCount[key] = (areaCount[key] || 0) + 1;
   });
 
   return reports.map((r) => {
-    const key = r.area || r.location;
+    const count = areaCount[r.area || r.location || "Unknown"];
     let priority = "Low";
-    if (areaCount[key] >= 5) {
-      priority = "High";
-    } else if (areaCount[key] >= 3) {
-      priority = "Medium";
-    }
+    if (count >= 5) priority = "High";
+    else if (count >= 3) priority = "Medium";
     return { ...r, priority };
   });
 };
@@ -31,25 +28,22 @@ export default function Reports() {
   // ✅ Fetch reports
   useEffect(() => {
     const fetchReports = async () => {
-      const { data, error } = await supabase
-        .from("reports")
-        .select("id, reporter_id, reporter_name, reporter_email, issue_type, description, area, location, remarks, status, created_at");
-
+      const { data, error } = await supabase.from("reports").select("*");
       if (error) {
-        console.error("Error fetching reports:", error.message);
+        console.error("❌ Error fetching reports:", error.message);
       } else {
+        console.log("✅ Reports fetched:", data);
         setReports(assignPriorityByArea(data));
       }
     };
-
     fetchReports();
   }, []);
 
   // Dashboard stats
   const totalReports = reports.length;
-  const openReports = reports.filter((r) => r.status === "Pending").length;
-  const inProgressReports = reports.filter((r) => r.status === "In Progress").length;
-  const resolvedReports = reports.filter((r) => r.status === "Resolved").length;
+  const pending = reports.filter((r) => r.status === "Pending").length;
+  const inProgress = reports.filter((r) => r.status === "In Progress").length;
+  const resolved = reports.filter((r) => r.status === "Resolved").length;
 
   // Filtering
   const filteredReports = reports.filter((report) => {
@@ -62,22 +56,23 @@ export default function Reports() {
     );
   });
 
-  // Badge styles
+  // Status badge styles
   const getStatusStyle = (status) => {
     switch (status) {
       case "Resolved":
-        return "bg-[#32CD32]/10 text-[#32CD32] px-2 py-1 rounded-lg text-sm";
+        return "bg-green-100 text-green-600 px-2 py-1 rounded-lg text-sm";
       case "In Progress":
-        return "bg-[#FFB347]/10 text-[#FFB347] px-2 py-1 rounded-lg text-sm";
+        return "bg-yellow-100 text-yellow-600 px-2 py-1 rounded-lg text-sm";
       case "Pending":
-        return "bg-[#FF4500]/10 text-[#FF4500] px-2 py-1 rounded-lg text-sm";
+        return "bg-red-100 text-red-600 px-2 py-1 rounded-lg text-sm";
       default:
         return "px-2 py-1 rounded-lg text-sm";
     }
   };
 
-  // ✅ Save changes
+  // ✅ Save changes to Supabase
   const handleSaveChanges = async () => {
+    if (!selectedReport) return;
     const { error } = await supabase
       .from("reports")
       .update({
@@ -87,9 +82,8 @@ export default function Reports() {
       .eq("id", selectedReport.id);
 
     if (error) {
-      console.error("Error updating report:", error.message);
+      console.error("❌ Error updating report:", error.message);
     } else {
-      // Refresh state
       const updated = reports.map((r) =>
         r.id === selectedReport.id ? { ...selectedReport } : r
       );
@@ -99,30 +93,30 @@ export default function Reports() {
   };
 
   return (
-    <div className="min-h-screen p-6" style={{ background: "linear-gradient(to bottom, #FFF9F0, #FFF1C6)" }}>
-      <h1 className="text-3xl font-bold mb-6 text-[#333333]">Reports</h1>
+    <div className="min-h-screen p-6 bg-gray-50">
+      <h1 className="text-3xl font-bold mb-6 text-gray-800">Reports Dashboard</h1>
 
       {/* Dashboard Summary */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
         <div className="bg-white p-4 rounded-xl shadow">
           <h3 className="text-lg font-semibold">Total Reports</h3>
-          <p className="text-2xl font-bold text-[#333]">{totalReports}</p>
+          <p className="text-2xl font-bold text-gray-700">{totalReports}</p>
         </div>
         <div className="bg-white p-4 rounded-xl shadow">
           <h3 className="text-lg font-semibold">Pending</h3>
-          <p className="text-2xl font-bold text-[#FF4500]">{openReports}</p>
+          <p className="text-2xl font-bold text-red-500">{pending}</p>
         </div>
         <div className="bg-white p-4 rounded-xl shadow">
           <h3 className="text-lg font-semibold">In Progress</h3>
-          <p className="text-2xl font-bold text-[#FFB347]">{inProgressReports}</p>
+          <p className="text-2xl font-bold text-yellow-500">{inProgress}</p>
         </div>
         <div className="bg-white p-4 rounded-xl shadow">
           <h3 className="text-lg font-semibold">Resolved</h3>
-          <p className="text-2xl font-bold text-[#32CD32]">{resolvedReports}</p>
+          <p className="text-2xl font-bold text-green-500">{resolved}</p>
         </div>
       </div>
 
-      {/* Filters */}
+      {/* Filters + Search */}
       <div className="flex flex-wrap gap-4 mb-6">
         <select
           value={categoryFilter}
@@ -149,17 +143,17 @@ export default function Reports() {
 
         <input
           type="text"
-          placeholder="Search by area or location..."
+          placeholder="Search by location or area..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="border rounded-lg p-2 flex-1 min-w-[200px] bg-white shadow-sm"
         />
       </div>
 
-      {/* Table */}
+      {/* Reports Table */}
       <div className="bg-white shadow-lg rounded-2xl overflow-hidden">
-        <table className="w-full border-collapse text-[#333333]">
-          <thead className="bg-[#FFE4B5] text-left">
+        <table className="w-full border-collapse text-gray-800">
+          <thead className="bg-yellow-100 text-left">
             <tr>
               <th className="p-3">ID</th>
               <th className="p-3">Issue</th>
@@ -173,19 +167,24 @@ export default function Reports() {
           <tbody>
             {filteredReports.length > 0 ? (
               filteredReports.map((report) => (
-                <tr key={report.id} className="border-t hover:bg-[#FFF9F0] transition">
+                <tr
+                  key={report.id}
+                  className="border-t hover:bg-yellow-50 transition"
+                >
                   <td className="p-3">{report.id.slice(0, 8)}...</td>
                   <td className="p-3">{report.issue_type}</td>
                   <td className="p-3">{report.area || "N/A"}</td>
                   <td className="p-3">{report.location}</td>
                   <td className="p-3">{report.priority}</td>
                   <td className="p-3">
-                    <span className={getStatusStyle(report.status)}>{report.status}</span>
+                    <span className={getStatusStyle(report.status)}>
+                      {report.status}
+                    </span>
                   </td>
                   <td className="p-3 text-center">
                     <button
                       onClick={() => setSelectedReport(report)}
-                      className="bg-[#FFA500] hover:bg-[#e59400] text-white px-4 py-1 rounded-xl shadow"
+                      className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-1 rounded-xl shadow"
                     >
                       View
                     </button>
@@ -194,7 +193,10 @@ export default function Reports() {
               ))
             ) : (
               <tr>
-                <td colSpan="7" className="p-4 text-center text-gray-500">
+                <td
+                  colSpan="7"
+                  className="p-4 text-center text-gray-500 italic"
+                >
                   No reports found.
                 </td>
               </tr>
@@ -207,8 +209,10 @@ export default function Reports() {
       {selectedReport && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
           <div className="bg-white rounded-2xl shadow-xl p-6 max-w-lg w-full max-h-[90vh] overflow-y-auto animate-fadeIn">
-            <h2 className="text-xl font-bold mb-4 text-[#333]">Report Details</h2>
-            <div className="space-y-2 text-[#555]">
+            <h2 className="text-xl font-bold mb-4 text-gray-800">
+              Report Details
+            </h2>
+            <div className="space-y-2 text-gray-600">
               <p><strong>ID:</strong> {selectedReport.id}</p>
               <p><strong>Issue:</strong> {selectedReport.issue_type}</p>
               <p><strong>Description:</strong> {selectedReport.description}</p>
@@ -217,7 +221,7 @@ export default function Reports() {
               <p><strong>Priority:</strong> {selectedReport.priority}</p>
               <p><strong>Reporter:</strong> {selectedReport.reporter_name}</p>
               <p><strong>Email:</strong> {selectedReport.reporter_email}</p>
-              <p><strong>Submitted At:</strong> {selectedReport.created_at}</p>
+              <p><strong>Submitted:</strong> {selectedReport.created_at}</p>
               <p>
                 <strong>Status:</strong>{" "}
                 <span className={getStatusStyle(selectedReport.status)}>
@@ -232,7 +236,9 @@ export default function Reports() {
                 <label className="block font-semibold mb-1">Update Status</label>
                 <select
                   value={selectedReport.status}
-                  onChange={(e) => setSelectedReport({ ...selectedReport, status: e.target.value })}
+                  onChange={(e) =>
+                    setSelectedReport({ ...selectedReport, status: e.target.value })
+                  }
                   className="border rounded-lg p-2 w-full"
                 >
                   <option value="Pending">Pending</option>
@@ -242,13 +248,15 @@ export default function Reports() {
               </div>
 
               <div>
-                <label className="block font-semibold mb-1">Notes</label>
+                <label className="block font-semibold mb-1">Remarks</label>
                 <textarea
                   value={selectedReport.remarks || ""}
-                  onChange={(e) => setSelectedReport({ ...selectedReport, remarks: e.target.value })}
+                  onChange={(e) =>
+                    setSelectedReport({ ...selectedReport, remarks: e.target.value })
+                  }
                   className="border rounded-lg p-2 w-full"
                   rows="3"
-                  placeholder="Add remarks or update notes..."
+                  placeholder="Add remarks..."
                 />
               </div>
             </div>
@@ -262,7 +270,7 @@ export default function Reports() {
               </button>
               <button
                 onClick={handleSaveChanges}
-                className="bg-[#FFA500] hover:bg-[#e59400] text-white px-4 py-2 rounded-xl shadow"
+                className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-xl shadow"
               >
                 Save Changes
               </button>
