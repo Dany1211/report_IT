@@ -22,6 +22,7 @@ export default function Reports() {
   const [reports, setReports] = useState([]);
   const [categoryFilter, setCategoryFilter] = useState("All");
   const [priorityFilter, setPriorityFilter] = useState("All");
+  const [statusFilter, setStatusFilter] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedReport, setSelectedReport] = useState(null);
   const [message, setMessage] = useState("");
@@ -59,11 +60,16 @@ export default function Reports() {
       return (
         (categoryFilter === "All" || report.issue_type === categoryFilter) &&
         (priorityFilter === "All" || report.priority === priorityFilter) &&
+        (statusFilter === "All" || report.status === statusFilter) && // ✅ Added status filter
         (searchQuery === "" ||
           report.location?.toLowerCase().includes(searchQuery.toLowerCase()))
       );
     })
     .sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+
+
+
+
 
   // Status badge styling
   const getStatusStyle = (status) => {
@@ -209,6 +215,17 @@ export default function Reports() {
           <option value="High">High</option>
           <option value="Medium">Medium</option>
           <option value="Low">Low</option>
+        </select>
+
+        <select
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
+          className="border rounded-lg p-2 bg-white shadow-sm"
+        >
+          <option value="All">All Status</option>
+          <option value="Pending">Pending</option>
+          <option value="In Progress">In Progress</option>
+          <option value="Resolved">Resolved</option>
         </select>
 
         <input
