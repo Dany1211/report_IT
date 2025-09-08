@@ -1,4 +1,4 @@
-import React, { useState,useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -22,19 +22,6 @@ import { Picker } from "@react-native-picker/picker";
 import { supabase } from "../../supabaseClient";
 
 const { width } = Dimensions.get('window');
-
-interface Report {
-  id: string;
-  issueType: string;
-  description: string;
-  photoUris: string[];
-  status: 'pending' | 'in_progress' | 'resolved';
-  urgency: 'low' | 'medium' | 'high';
-  progress: number;
-  location: string;
-  timestamp: string;
-}
-
 
 
 interface Notification {
@@ -79,12 +66,12 @@ const HomeScreen: React.FC = () => {
   const [selectedImages, setSelectedImages] = useState<string[]>([]);
   const [location, setLocation] = useState('');
   const [isAutoLocation, setIsAutoLocation] = useState(true);
-  
+
 
   const [user, setUser] = useState<{ name: string; email: string } | null>(null);
 
   // New State for Loading Animation
-  const [isLocating, setIsLocating] = useState(false); 
+  const [isLocating, setIsLocating] = useState(false);
 
   // Placeholder data
   const statsData = {
@@ -93,50 +80,6 @@ const HomeScreen: React.FC = () => {
     resolvedIssues: 114,
   };
 
-  const nearbyReports: Report[] = [
-    {
-      id: '1',
-      issueType: 'Pothole',
-      description: 'Large pothole on Main Street causing traffic issues and potential vehicle damage',
-      photoUris: [
-        'https://via.placeholder.com/60x60/FFB347/FFFFFF?text=P1',
-        'https://via.placeholder.com/60x60/FFB347/FFFFFF?text=P2',
-      ],
-      status: 'pending',
-      urgency: 'high',
-      progress: 0,
-      location: 'Main Street, Downtown',
-      timestamp: '2024-01-15T10:30:00Z',
-    },
-    {
-      id: '2',
-      issueType: 'Street Light',
-      description: 'Broken street light near park entrance affecting pedestrian safety',
-      photoUris: [
-        'https://via.placeholder.com/60x60/32CD32/FFFFFF?text=L1',
-      ],
-      status: 'resolved',
-      urgency: 'medium',
-      progress: 100,
-      location: 'Park Avenue',
-      timestamp: '2024-01-14T15:45:00Z',
-    },
-    {
-      id: '3',
-      issueType: 'Garbage',
-      description: 'Overflowing trash bin in residential area',
-      photoUris: [
-        'https://via.placeholder.com/60x60/FFB347/FFFFFF?text=G1',
-        'https://via.placeholder.com/60x60/FFB347/FFFFFF?text=G2',
-        'https://via.placeholder.com/60x60/FFB347/FFFFFF?text=G3',
-      ],
-      status: 'in_progress',
-      urgency: 'low',
-      progress: 50,
-      location: 'Residential Area',
-      timestamp: '2024-01-13T09:20:00Z',
-    },
-  ];
 
   const notifications: Notification[] = [
     {
@@ -188,7 +131,7 @@ const HomeScreen: React.FC = () => {
 
   const autoDetectLocation = async () => {
     setIsLocating(true); // Start loading animation
-    
+
     try {
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== 'granted') {
@@ -201,13 +144,10 @@ const HomeScreen: React.FC = () => {
 
       const [addressInfo] = await Location.reverseGeocodeAsync({ latitude, longitude });
 
-      const detectedAddress = `${addressInfo.name ? addressInfo.name + ', ' : ''}${
-        addressInfo.street ? addressInfo.street + ', ' : ''
-      }${addressInfo.city ? addressInfo.city + ', ' : ''}${
-        addressInfo.region ? addressInfo.region + ', ' : ''
-      }${addressInfo.postalCode ? addressInfo.postalCode + ', ' : ''}${
-        addressInfo.country ? addressInfo.country : ''
-      }`;
+      const detectedAddress = `${addressInfo.name ? addressInfo.name + ', ' : ''}${addressInfo.street ? addressInfo.street + ', ' : ''
+        }${addressInfo.city ? addressInfo.city + ', ' : ''}${addressInfo.region ? addressInfo.region + ', ' : ''
+        }${addressInfo.postalCode ? addressInfo.postalCode + ', ' : ''}${addressInfo.country ? addressInfo.country : ''
+        }`;
 
       setLocation(detectedAddress);
       setIsAutoLocation(true);
@@ -297,36 +237,36 @@ const HomeScreen: React.FC = () => {
     return new Date(timestamp).toLocaleDateString();
   };
   useEffect(() => {
-      const fetchUser = async () => {
-        try {
-          const {
-            data: { user },
-          } = await supabase.auth.getUser();
-  
-          if (user) {
-            const { data, error } = await supabase
-              .from("profiles")
-              .select("name, email")
-              .eq("id", user.id)
-              .single();
-  
-            if (error) {
-              console.error("Error fetching profile:", error.message);
-            } else {
-              setUser({
-                name: data?.name || "Unknown",
-                email: data?.email || "No email",
-              });
-            }
+    const fetchUser = async () => {
+      try {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+
+        if (user) {
+          const { data, error } = await supabase
+            .from("profiles")
+            .select("name, email")
+            .eq("id", user.id)
+            .single();
+
+          if (error) {
+            console.error("Error fetching profile:", error.message);
+          } else {
+            setUser({
+              name: data?.name || "Unknown",
+              email: data?.email || "No email",
+            });
           }
-        } catch (err) {
-          console.error("Unexpected error fetching user:", err);
         }
-      };
-  
-      fetchUser();
-    }, []);
-  
+      } catch (err) {
+        console.error("Unexpected error fetching user:", err);
+      }
+    };
+
+    fetchUser();
+  }, []);
+
 
   return (
     <LinearGradient
@@ -386,71 +326,6 @@ const HomeScreen: React.FC = () => {
           <Text style={styles.tipText}>💡 Include multiple photos for faster resolution</Text>
         </View>
 
-        {/* Nearby Reports Section */}
-        <View style={styles.nearbyReportsContainer}>
-          <Text style={styles.sectionTitle}>Nearby Reports</Text>
-          {nearbyReports.map((report) => (
-            <TouchableOpacity
-              key={report.id}
-              style={styles.reportCard}
-              onPress={() => openReportDetail(report)}
-            >
-              <View style={styles.reportContent}>
-                <View style={styles.reportPhotos}>
-                  {report.photoUris.slice(0, 2).map((uri, index) => (
-                    <Image key={index} source={{ uri }} style={styles.reportImage} />
-                  ))}
-                  {report.photoUris.length > 2 && (
-                    <View style={styles.morePhotosIndicator}>
-                      <Text style={styles.morePhotosText}>+{report.photoUris.length - 2}</Text>
-                    </View>
-                  )}
-                </View>
-
-                <View style={styles.reportDetails}>
-                  <View style={styles.reportHeader}>
-                    <Text style={styles.issueTypeText}>{report.issueType}</Text>
-                    <View style={styles.badgesRow}>
-                      <View style={[
-                        styles.urgencyBadge,
-                        { backgroundColor: getUrgencyColor(report.urgency) }
-                      ]}>
-                        <Text style={styles.urgencyText}>
-                          {report.urgency.toUpperCase()}
-                        </Text>
-                      </View>
-                      <View style={[
-                        styles.statusBadge,
-                        { backgroundColor: report.status === 'resolved' ? '#2ECC71' : report.status === 'in_progress' ? '#F39C12' : '#F39C12' }
-                      ]}>
-                        <Text style={styles.statusText}>
-                          {getStatusText(report.status)}
-                        </Text>
-                      </View>
-                    </View>
-                  </View>
-
-                  <Text style={styles.reportDescription} numberOfLines={2}>
-                    {report.description}
-                  </Text>
-
-                  <View style={styles.progressContainer}>
-                    <View style={styles.progressBarBackground}>
-                      <View style={[
-                        styles.progressBarFill,
-                        {
-                          width: `${report.progress}%`,
-                          backgroundColor: getProgressBarColor(report.progress)
-                        }
-                      ]} />
-                    </View>
-                    <Text style={styles.progressText}>{report.progress}%</Text>
-                  </View>
-                </View>
-              </View>
-            </TouchableOpacity>
-          ))}
-        </View>
       </ScrollView>
 
       {/* New Issue Modal */}
@@ -468,78 +343,55 @@ const HomeScreen: React.FC = () => {
             <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
               <Text style={styles.modalTitle}>Report New Issue</Text>
 
-<Text style={styles.inputLabel}>Title *</Text>
+              <Text style={styles.inputLabel}>Title *</Text>
 
-<View style={styles.dropdownContainer}>
-  <Picker
-    selectedValue={issueType}
-    onValueChange={(itemValue) => setIssueType(itemValue)}
-    style={styles.dropdown}
-  >
-    <Picker.Item label="Select an issue type..." value="" />
-    <Picker.Item label="Potholes" value="Potholes" />
-    <Picker.Item label="Streetlights" value="Streetlights" />
-    <Picker.Item label="Overflowing Trash Bins" value="Overflowing Trash Bins" />
-    <Picker.Item label="Graffiti" value="Graffiti" />
-    <Picker.Item label="Broken Sidewalks" value="Broken Sidewalks" />
-    <Picker.Item label="Illegal Dumping" value="Illegal Dumping" />
-    <Picker.Item label="Noise Complaints" value="Noise Complaints" />
-    <Picker.Item label="Water Leakage" value="Water Leakage" />
-    <Picker.Item label="Blocked Drains" value="Blocked Drains" />
-    <Picker.Item label="Abandoned Vehicles" value="Abandoned Vehicles" />
-    <Picker.Item label="Fallen Trees" value="Fallen Trees" />
-    <Picker.Item label="Traffic Signals" value="Traffic Signals" />
-    <Picker.Item label="Road Damage" value="Road Damage" />
-    <Picker.Item label="Missing Signage" value="Missing Signage" />
-    <Picker.Item label="Vandalism" value="Vandalism" />
-    <Picker.Item label="Public Restroom Issues" value="Public Restroom Issues" />
-    <Picker.Item label="Animal Control" value="Animal Control" />
-    <Picker.Item label="Hazardous Waste" value="Hazardous Waste" />
-    <Picker.Item label="Construction Debris" value="Construction Debris" />
-    <Picker.Item label="Other" value="Other" />
-  </Picker>
-</View>
-
-<Text style={styles.inputLabel}>Description *</Text>
-<View style={styles.descriptionRow}>
-  <TextInput
-    style={[styles.input, styles.textArea, { flex: 1 }]}
-    placeholder="Describe the issue in detail..."
-    multiline={true}
-    numberOfLines={4}
-    value={description}
-    onChangeText={setDescription}
-  />
-  <TouchableOpacity
-    style={styles.aiButton}
-    onPress={generateAIDescription}
-  >
-    <Text style={styles.aiButtonText}>AI</Text>
-  </TouchableOpacity>
-</View>
-
-
-              {/* <Text style={styles.inputLabel}>Urgency Level</Text>
-              <View style={styles.urgencySelector}>
-                <TouchableOpacity
-                  style={[styles.urgencyOption, urgency === 'low' && { backgroundColor: '#2ECC71' }]}
-                  onPress={() => setUrgency('low')}
+              <View style={styles.dropdownContainer}>
+                <Picker
+                  selectedValue={issueType}
+                  onValueChange={(itemValue) => setIssueType(itemValue)}
+                  style={styles.dropdown}
                 >
-                  <Text style={[styles.urgencyOptionText, urgency === 'low' && { color: '#FFFFFF' }]}>Low</Text>
-                </TouchableOpacity>
+                  <Picker.Item label="Select an issue type..." value="" />
+                  <Picker.Item label="Potholes" value="Potholes" />
+                  <Picker.Item label="Streetlights" value="Streetlights" />
+                  <Picker.Item label="Overflowing Trash Bins" value="Overflowing Trash Bins" />
+                  <Picker.Item label="Graffiti" value="Graffiti" />
+                  <Picker.Item label="Broken Sidewalks" value="Broken Sidewalks" />
+                  <Picker.Item label="Illegal Dumping" value="Illegal Dumping" />
+                  <Picker.Item label="Noise Complaints" value="Noise Complaints" />
+                  <Picker.Item label="Water Leakage" value="Water Leakage" />
+                  <Picker.Item label="Blocked Drains" value="Blocked Drains" />
+                  <Picker.Item label="Abandoned Vehicles" value="Abandoned Vehicles" />
+                  <Picker.Item label="Fallen Trees" value="Fallen Trees" />
+                  <Picker.Item label="Traffic Signals" value="Traffic Signals" />
+                  <Picker.Item label="Road Damage" value="Road Damage" />
+                  <Picker.Item label="Missing Signage" value="Missing Signage" />
+                  <Picker.Item label="Vandalism" value="Vandalism" />
+                  <Picker.Item label="Public Restroom Issues" value="Public Restroom Issues" />
+                  <Picker.Item label="Animal Control" value="Animal Control" />
+                  <Picker.Item label="Hazardous Waste" value="Hazardous Waste" />
+                  <Picker.Item label="Construction Debris" value="Construction Debris" />
+                  <Picker.Item label="Other" value="Other" />
+                </Picker>
+              </View>
+
+              <Text style={styles.inputLabel}>Description *</Text>
+              <View style={styles.descriptionRow}>
+                <TextInput
+                  style={[styles.input, styles.textArea, { flex: 1 }]}
+                  placeholder="Describe the issue in detail..."
+                  multiline={true}
+                  numberOfLines={4}
+                  value={description}
+                  onChangeText={setDescription}
+                />
                 <TouchableOpacity
-                  style={[styles.urgencyOption, urgency === 'medium' && { backgroundColor: '#F39C12' }]}
-                  onPress={() => setUrgency('medium')}
+                  style={styles.aiButton}
+                  onPress={generateAIDescription}
                 >
-                  <Text style={[styles.urgencyOptionText, urgency === 'medium' && { color: '#FFFFFF' }]}>Medium</Text>
+                  <Text style={styles.aiButtonText}>AI</Text>
                 </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.urgencyOption, urgency === 'high' && { backgroundColor: '#E74C3C' }]}
-                  onPress={() => setUrgency('high')}
-                >
-                  <Text style={[styles.urgencyOptionText, urgency === 'high' && { color: '#FFFFFF' }]}>High</Text>
-                </TouchableOpacity>
-              </View> */}
+              </View>
 
               <Text style={styles.inputLabel}>Photos (Optional)</Text>
               <TouchableOpacity style={styles.photoButton} onPress={pickImages}>
@@ -609,73 +461,6 @@ const HomeScreen: React.FC = () => {
       </Modal>
 
       {/* Report Detail Modal */}
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={detailModalVisible}
-        onRequestClose={() => setDetailModalVisible(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.detailModalContainer}>
-            {selectedReport && (
-              <>
-                <Text style={styles.modalTitle}>{selectedReport.issueType}</Text>
-
-                <ScrollView horizontal style={styles.detailPhotosContainer}>
-                  {selectedReport.photoUris.map((uri, index) => (
-                    <Image key={index} source={{ uri }} style={styles.detailImage} />
-                  ))}
-                </ScrollView>
-
-                <Text style={styles.detailDescription}>{selectedReport.description}</Text>
-
-                <View style={styles.detailBadgesRow}>
-                  <View style={[
-                    styles.urgencyBadge,
-                    { backgroundColor: getUrgencyColor(selectedReport.urgency) }
-                  ]}>
-                    <Text style={styles.urgencyText}>
-                      {selectedReport.urgency.toUpperCase()}
-                    </Text>
-                  </View>
-                  <View style={[
-                    styles.statusBadge,
-                    { backgroundColor: selectedReport.status === 'resolved' ? '#2ECC71' : selectedReport.status === 'in_progress' ? '#F39C12' : '#F39C12' }
-                  ]}>
-                    <Text style={styles.statusText}>
-                      {getStatusText(selectedReport.status)}
-                    </Text>
-                  </View>
-                </View>
-
-                <View style={styles.progressContainer}>
-                  <Text style={styles.progressLabel}>Progress:</Text>
-                  <View style={styles.progressBarBackground}>
-                    <View style={[
-                      styles.progressBarFill,
-                      {
-                        width: `${selectedReport.progress}%`,
-                        backgroundColor: getProgressBarColor(selectedReport.progress)
-                      }
-                    ]} />
-                  </View>
-                  <Text style={styles.progressText}>{selectedReport.progress}%</Text>
-                </View>
-
-                <Text style={styles.detailLocation}>📍 {selectedReport.location}</Text>
-                <Text style={styles.detailTimestamp}>Reported: {formatTimestamp(selectedReport.timestamp)}</Text>
-
-                <TouchableOpacity
-                  style={styles.closeDetailButton}
-                  onPress={() => setDetailModalVisible(false)}
-                >
-                  <Text style={styles.closeDetailButtonText}>Close</Text>
-                </TouchableOpacity>
-              </>
-            )}
-          </View>
-        </View>
-      </Modal>
 
       {/* Notifications Modal */}
       <Modal
@@ -823,115 +608,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#333333',
     textAlign: 'center',
-  },
-  nearbyReportsContainer: {
-    paddingHorizontal: 20,
-    marginBottom: 100,
-  },
-  reportCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    marginBottom: 12,
-    shadowColor: 'rgba(0,0,0,0.1)',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  reportContent: {
-    flexDirection: 'row',
-    padding: 16,
-  },
-  reportPhotos: {
-    flexDirection: 'row',
-    marginRight: 12,
-  },
-  reportImage: {
-    width: 50,
-    height: 50,
-    borderRadius: 8,
-    marginRight: 4,
-  },
-  morePhotosIndicator: {
-    width: 50,
-    height: 50,
-    borderRadius: 8,
-    backgroundColor: 'rgba(0,0,0,0.7)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  morePhotosText: {
-    color: '#FFFFFF',
-    fontSize: 12,
-    fontWeight: 'bold',
-  },
-  reportDetails: {
-    flex: 1,
-  },
-  reportHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 8,
-  },
-  issueTypeText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#E74C3C',
-    flex: 1,
-  },
-  badgesRow: {
-    flexDirection: 'row',
-    gap: 4,
-  },
-  urgencyBadge: {
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 8,
-  },
-  urgencyText: {
-    fontSize: 10,
-    color: '#FFFFFF',
-    fontWeight: '600',
-  },
-  statusBadge: {
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 8,
-  },
-  statusText: {
-    fontSize: 10,
-    color: '#FFFFFF',
-    fontWeight: '600',
-  },
-  reportDescription: {
-    fontSize: 14,
-    color: '#555555',
-    lineHeight: 20,
-    marginBottom: 8,
-  },
-  progressContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  progressLabel: {
-    fontSize: 12,
-    color: '#555555',
-  },
-  progressBarBackground: {
-    flex: 1,
-    height: 6,
-    backgroundColor: '#E0E0E0',
-    borderRadius: 3,
-  },
-  progressBarFill: {
-    height: '100%',
-    borderRadius: 3,
-  },
-  progressText: {
-    fontSize: 12,
-    color: '#555555',
   },
   modalOverlay: {
     flex: 1,
@@ -1222,7 +898,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: "#333",
 
-    
+
   },
 });
 
