@@ -170,21 +170,23 @@ const StatCard = ({ title, value, icon }) => (
   </div>
 );
 
+
 // Status color helper
 const getStatusColor = (status) => {
   if (!status) return "text-gray-500 bg-gray-500/10";
   const normalized = status.trim().toLowerCase();
   switch (normalized) {
     case "pending":
-      return "text-[#FFB347] bg-[#FFB347]/20";
+      return "text-[#FF4500] bg-[#FF4500]/20"; // 🔴 red for pending
     case "in progress":
-      return "text-[#FFA500] bg-[#FFA500]/20";
+      return "text-[#FFA500] bg-[#FFA500]/20"; // orange
     case "resolved":
-      return "text-[#32CD32] bg-[#32CD32]/20";
+      return "text-[#32CD32] bg-[#32CD32]/20"; // green
     default:
       return "text-gray-500 bg-gray-500/10";
   }
 };
+
 
 // Table component
 const Table = ({ data }) => (
