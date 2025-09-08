@@ -26,7 +26,7 @@ export default function DashboardLayout() {
       <aside
         className={`${
           isExpanded ? "w-64" : "w-20"
-        } bg-[#332211] text-white transition-all duration-300 p-4 flex flex-col shadow-lg`}
+        } bg-[#150c03] text-white transition-all duration-300 p-4 flex flex-col shadow-lg`}
       >
         {/* Toggle button */}
         <button
