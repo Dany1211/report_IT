@@ -695,7 +695,7 @@ export default function Reports() {
 
         <input
           type="text"
-          placeholder="Search by location..."
+          placeholder="Search by area..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="border border-[#FFE4B5] rounded-lg p-2 flex-1 min-w-[200px] bg-white shadow-sm"

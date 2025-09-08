@@ -656,7 +656,7 @@ export default function Exporting() {
           ))}
         </select>
 
-        <select
+        {/* <select
           value={areaFilter}
           onChange={(e) => setAreaFilter(e.target.value)}
           className="border border-[#FFE4B5] rounded-lg p-2 bg-white shadow-sm text-[#555]"
@@ -667,7 +667,20 @@ export default function Exporting() {
               {a}
             </option>
           ))}
+        </select> */}
+        <select
+          value={areaFilter}
+          onChange={(e) => setAreaFilter(e.target.value)}
+          className="border border-[#FFE4B5] rounded-lg px-2 py-1 bg-white shadow-sm text-[#555] w-auto"
+        >
+          <option value="All">All Areas</option>
+          {[...new Set(reports.map((r) => r.location))].map((a) => (
+            <option key={a} value={a}>
+              {a}
+            </option>
+          ))}
         </select>
+
 
         <select
           value={statusFilter}

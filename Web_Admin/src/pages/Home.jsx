@@ -188,32 +188,70 @@ const getStatusColor = (status) => {
 };
 
 
-// Table component
+// // Table component
+// const Table = ({ data }) => (
+//   <div className="overflow-x-auto bg-white rounded-xl shadow-lg border border-[#FFE4B5]">
+//     <table className="min-w-full divide-y divide-[#FFE4B5]">
+//       <thead className="bg-[#FFF9F0]">
+//         <tr>
+//           <th className="px-6 py-3 text-left text-xs font-medium text-[#555555] uppercase tracking-wider">
+//             Issue
+//           </th>
+//           <th className="px-6 py-3 text-left text-xs font-medium text-[#555555] uppercase tracking-wider">
+//             Status
+//           </th>
+//           <th className="px-6 py-3 text-left text-xs font-medium text-[#555555] uppercase tracking-wider">
+//             Location
+//           </th>
+//         </tr>
+//       </thead>
+//       <tbody className="divide-y divide-[#FFF1C6]">
+//         {data.map((report) => (
+//           <tr key={report.id} className="hover:bg-[#FFF9F0] transition">
+//             <td className="px-6 py-4 whitespace-nowrap">
+//               <div className="text-sm font-medium text-[#333333]">
+//                 {report.issue_type}
+//               </div>
+//             </td>
+//             <td className="px-6 py-4 whitespace-nowrap">
+//               <span
+//                 className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(
+//                   report.status
+//                 )}`}
+//               >
+//                 {report.status}
+//               </span>
+//             </td>
+//             <td className="px-6 py-4 whitespace-nowrap text-sm text-[#555555]">
+//               {report.location}
+//             </td>
+//           </tr>
+//         ))}
+//       </tbody>
+//     </table>
+//   </div>
+// );
+// Table component (styled like Reports table)
 const Table = ({ data }) => (
-  <div className="overflow-x-auto bg-white rounded-xl shadow-lg border border-[#FFE4B5]">
-    <table className="min-w-full divide-y divide-[#FFE4B5]">
-      <thead className="bg-[#FFF9F0]">
+  <div className="bg-white shadow-lg rounded-2xl overflow-hidden">
+    <table className="w-full border-collapse text-[#333]">
+      <thead className="bg-[#FFE4B5] text-left">
         <tr>
-          <th className="px-6 py-3 text-left text-xs font-medium text-[#555555] uppercase tracking-wider">
-            Issue
-          </th>
-          <th className="px-6 py-3 text-left text-xs font-medium text-[#555555] uppercase tracking-wider">
-            Status
-          </th>
-          <th className="px-6 py-3 text-left text-xs font-medium text-[#555555] uppercase tracking-wider">
-            Location
-          </th>
+          <th className="p-3 text-sm font-semibold">Issue</th>
+          <th className="p-3 text-sm font-semibold">Status</th>
+          <th className="p-3 text-sm font-semibold">Location</th>
         </tr>
       </thead>
-      <tbody className="divide-y divide-[#FFF1C6]">
+      <tbody>
         {data.map((report) => (
-          <tr key={report.id} className="hover:bg-[#FFF9F0] transition">
-            <td className="px-6 py-4 whitespace-nowrap">
-              <div className="text-sm font-medium text-[#333333]">
-                {report.issue_type}
-              </div>
+          <tr
+            key={report.id}
+            className="border-t border-[#FFE4B5] hover:bg-[#FFF9F0] transition"
+          >
+            <td className="p-3 text-sm font-medium text-[#333]">
+              {report.issue_type}
             </td>
-            <td className="px-6 py-4 whitespace-nowrap">
+            <td className="p-3">
               <span
                 className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(
                   report.status
@@ -222,9 +260,7 @@ const Table = ({ data }) => (
                 {report.status}
               </span>
             </td>
-            <td className="px-6 py-4 whitespace-nowrap text-sm text-[#555555]">
-              {report.location}
-            </td>
+            <td className="p-3 text-sm text-[#555]">{report.location}</td>
           </tr>
         ))}
       </tbody>
