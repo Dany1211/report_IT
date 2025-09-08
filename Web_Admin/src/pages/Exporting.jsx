@@ -884,7 +884,7 @@ Write in a structured but plain-text format.`,
           onChange={(e) => setStatusFilter(e.target.value)}
           className="border rounded-lg p-2 bg-white shadow-sm"
         >
-          <option value="All">All Statuses</option>
+          <option value="All">All Status</option>
           {[...new Set(reports.map((r) => r.status))].map((s) => (
             <option key={s} value={s}>{s}</option>
           ))}
