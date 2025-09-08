@@ -1,12 +1,12 @@
 "use client"
 
-// src/pages/SettingsPage.jsx
+// src/pages/Settings.jsx
 import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import { supabase } from "../supabaseClient"
 import { Mail, User, Shield } from "lucide-react"
 
-const SettingsPage = () => {
+const Settings = () => {
   const navigate = useNavigate()
   const [user, setUser] = useState(null)
   const [profile, setProfile] = useState({ name: "", role: "", email: "", avatar: "" })
@@ -136,4 +136,4 @@ const SettingsPage = () => {
   )
 }
 
-export default SettingsPage
+export default Settings

@@ -170,68 +170,23 @@ const StatCard = ({ title, value, icon }) => (
   </div>
 );
 
-
 // Status color helper
 const getStatusColor = (status) => {
   if (!status) return "text-gray-500 bg-gray-500/10";
   const normalized = status.trim().toLowerCase();
   switch (normalized) {
     case "pending":
-      return "text-[#FF4500] bg-[#FF4500]/20"; // 🔴 red for pending
+      return "text-[#FF4500] bg-[#FF4500]/20"; // 🔴 red
     case "in progress":
-      return "text-[#FFA500] bg-[#FFA500]/20"; // orange
+      return "text-[#FFA500] bg-[#FFA500]/20"; // 🟠 orange
     case "resolved":
-      return "text-[#32CD32] bg-[#32CD32]/20"; // green
+      return "text-[#32CD32] bg-[#32CD32]/20"; // 🟢 green
     default:
       return "text-gray-500 bg-gray-500/10";
   }
 };
 
-
-// // Table component
-// const Table = ({ data }) => (
-//   <div className="overflow-x-auto bg-white rounded-xl shadow-lg border border-[#FFE4B5]">
-//     <table className="min-w-full divide-y divide-[#FFE4B5]">
-//       <thead className="bg-[#FFF9F0]">
-//         <tr>
-//           <th className="px-6 py-3 text-left text-xs font-medium text-[#555555] uppercase tracking-wider">
-//             Issue
-//           </th>
-//           <th className="px-6 py-3 text-left text-xs font-medium text-[#555555] uppercase tracking-wider">
-//             Status
-//           </th>
-//           <th className="px-6 py-3 text-left text-xs font-medium text-[#555555] uppercase tracking-wider">
-//             Location
-//           </th>
-//         </tr>
-//       </thead>
-//       <tbody className="divide-y divide-[#FFF1C6]">
-//         {data.map((report) => (
-//           <tr key={report.id} className="hover:bg-[#FFF9F0] transition">
-//             <td className="px-6 py-4 whitespace-nowrap">
-//               <div className="text-sm font-medium text-[#333333]">
-//                 {report.issue_type}
-//               </div>
-//             </td>
-//             <td className="px-6 py-4 whitespace-nowrap">
-//               <span
-//                 className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(
-//                   report.status
-//                 )}`}
-//               >
-//                 {report.status}
-//               </span>
-//             </td>
-//             <td className="px-6 py-4 whitespace-nowrap text-sm text-[#555555]">
-//               {report.location}
-//             </td>
-//           </tr>
-//         ))}
-//       </tbody>
-//     </table>
-//   </div>
-// );
-// Table component (styled like Reports table)
+// Table component
 const Table = ({ data }) => (
   <div className="bg-white shadow-lg rounded-2xl overflow-hidden">
     <table className="w-full border-collapse text-[#333]">
@@ -270,36 +225,22 @@ const Table = ({ data }) => (
 
 export default function Dashboard() {
   const [reports, setReports] = useState([]);
-  const [latestReports, setLatestReports] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // fetch reports from supabase
+  // fetch ALL reports from supabase
   useEffect(() => {
     const fetchReports = async () => {
       setLoading(true);
 
-      // fetch all reports (for stats)
-      const { data: allReports, error: allError } = await supabase
-        .from("reports")
-        .select("id, issue_type, status, location, created_at");
-
-      if (allError) {
-        console.error("Error fetching reports:", allError.message);
-      } else {
-        setReports(allReports || []);
-      }
-
-      // fetch latest 10 reports (for table)
-      const { data: latest, error: latestError } = await supabase
+      const { data, error } = await supabase
         .from("reports")
         .select("id, issue_type, status, location, created_at")
-        .order("created_at", { ascending: false })
-        .limit(10);
+        .order("created_at", { ascending: false });
 
-      if (latestError) {
-        console.error("Error fetching latest reports:", latestError.message);
+      if (error) {
+        console.error("Error fetching reports:", error.message);
       } else {
-        setLatestReports(latest || []);
+        setReports(data || []);
       }
 
       setLoading(false);
@@ -308,7 +249,7 @@ export default function Dashboard() {
     fetchReports();
   }, []);
 
-  // calculate stats robustly (all issues)
+  // calculate stats
   const pendingCount = reports.filter((r) => r.status?.trim().toLowerCase() === "pending").length;
   const resolvedCount = reports.filter((r) => r.status?.trim().toLowerCase() === "resolved").length;
   const inProgressCount = reports.filter((r) => r.status?.trim().toLowerCase() === "in progress").length;
@@ -320,37 +261,19 @@ export default function Dashboard() {
 
         {/* Stat Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          <StatCard
-            title="Pending Issues"
-            value={pendingCount}
-            icon={<AlertCircle size={20} />}
-          />
-          <StatCard
-            title="Resolved Issues"
-            value={resolvedCount}
-            icon={<CheckCircle size={20} />}
-          />
-          <StatCard
-            title="In Progress"
-            value={inProgressCount}
-            icon={<Clock size={20} />}
-          />
-          <StatCard
-            title="Total Issues"
-            value={reports.length}
-            icon={<Flame size={20} />}
-          />
+          <StatCard title="Pending Issues" value={pendingCount} icon={<AlertCircle size={20} />} />
+          <StatCard title="Resolved Issues" value={resolvedCount} icon={<CheckCircle size={20} />} />
+          <StatCard title="In Progress" value={inProgressCount} icon={<Clock size={20} />} />
+          <StatCard title="Total Issues" value={reports.length} icon={<Flame size={20} />} />
         </div>
 
-        {/* Recent Reports */}
+        {/* All Reports Table */}
         <div className="mt-8">
-          <h2 className="text-xl font-semibold text-[#333333] mb-4">
-            Recent Reports
-          </h2>
+          <h2 className="text-xl font-semibold text-[#333333] mb-4">All Reports</h2>
           {loading ? (
             <p className="text-[#555555]">Loading reports...</p>
-          ) : latestReports.length > 0 ? (
-            <Table data={latestReports} />
+          ) : reports.length > 0 ? (
+            <Table data={reports} />
           ) : (
             <p className="text-[#555555]">No reports available.</p>
           )}
