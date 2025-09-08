@@ -59,127 +59,163 @@ const getStatusStyle = (status) => {
     );
   };
 
-  const handleExportCSV = () => {
-    const dataToExport =
-      selectedReports.length > 0 ? selectedReports : filteredReports;
-    const headers = [
-      "ID",
-      "Reporter",
-      "Email",
-      "Issue",
-      "Description",
-      "Location",
-      "Status",
-      "Created At",
-    ];
-    const csvRows = [
-      headers.join(","),
-      ...dataToExport.map((r, index) =>
-        [
-          index + 1,
-          r.reporter_name,
-          r.reporter_email,
-          r.issue_type,
-          r.description,
-          r.location,
-          r.status,
-          r.created_at,
-        ].join(",")
-      ),
-    ];
-    const csvString = csvRows.join("\n");
-    const blob = new Blob([csvString], { type: "text/csv" });
-    const url = window.URL.createObjectURL(blob);
+const handleExportCSV = () => {
+  const dataToExport =
+    selectedReports.length > 0 ? selectedReports : filteredReports;
 
-    const a = document.createElement("a");
-    a.href = url;
-    a.download =
-      selectedReports.length > 0 ? `reports-selected.csv` : "reports.csv";
-    a.click();
-    window.URL.revokeObjectURL(url);
-  };
+  if (dataToExport.length === 0) return;
+
+  const excludeKeys = ["id", "user_id"];
+  const headers = Object.keys(dataToExport[0]).filter(
+    (key) => !excludeKeys.includes(key)
+  );
+
+  const csvRows = [
+    headers.join(","), // header row
+    ...dataToExport.map((r) =>
+      headers
+        .map((h) => {
+          let val = r[h];
+          if (val instanceof Date) val = val.toISOString();
+          if (typeof val === "string") val = `"${val.replace(/"/g, '""')}"`;
+          return val ?? "";
+        })
+        .join(",")
+    ),
+  ];
+
+  // // Add simple AI summary row at end
+  // const total = dataToExport.length;
+  // const resolved = dataToExport.filter((r) => r.status === "Resolved").length;
+  // const pending = dataToExport.filter((r) => r.status === "Pending").length;
+  // csvRows.push("");
+  // csvRows.push(`AI Summary,Total:${total},Resolved:${resolved},Pending:${pending}`);
+
+  // const csvString = csvRows.join("\n");
+  // const blob = new Blob([csvString], { type: "text/csv" });
+  // const url = window.URL.createObjectURL(blob);
+
+  // const a = document.createElement("a");
+  a.href = url;
+  a.download =
+    selectedReports.length > 0 ? `reports-selected.csv` : "reports.csv";
+  a.click();
+  window.URL.revokeObjectURL(url);
+};
+
+
+
 
   const handleExportPDF = () => {
-    const doc = new jsPDF();
-    doc.setFontSize(14);
+  const doc = new jsPDF();
+  doc.setFontSize(14);
 
-    const dataToExport =
-      selectedReports.length > 0 ? selectedReports : filteredReports;
-    doc.text("Reports Summary", 10, 10);
-    dataToExport.forEach((r, index) => {
-      doc.text(
-        `${index + 1}. ${r.issue_type} [${r.location}] (${r.status})`,
-        10,
-        20 + index * 10
-      );
+  const dataToExport =
+    selectedReports.length > 0 ? selectedReports : filteredReports;
+
+  doc.text("Reports Summary", 10, 10);
+  doc.setFontSize(11);
+
+  let y = 20;
+  const excludeKeys = ["id", "user_id"];
+
+  dataToExport.forEach((r, index) => {
+    doc.text(`#${index + 1}`, 10, y);
+    y += 6;
+
+    Object.keys(r).forEach((key) => {
+      if (!excludeKeys.includes(key)) {
+        let val = r[key];
+        if (val instanceof Date) val = val.toLocaleString();
+        if (val == null) val = "N/A";
+
+        doc.text(`${key}: ${val}`, 10, y);
+        y += 6;
+
+        if (y > 280) {
+          doc.addPage();
+          y = 20;
+        }
+      }
     });
 
-    doc.save(
-      selectedReports.length > 0 ? "reports-selected.pdf" : "reports.pdf"
+    y += 8;
+  });
+
+  // // Add AI Insights at the end
+  // const total = dataToExport.length;
+  // const resolved = dataToExport.filter((r) => r.status === "Resolved").length;
+  // const pending = dataToExport.filter((r) => r.status === "Pending").length;
+
+  // doc.addPage();
+  // doc.setFontSize(13);
+  // doc.text("AI Insights", 10, 20);
+  // doc.setFontSize(11);
+  // doc.text(`Total reports: ${total}`, 10, 35);
+  // doc.text(`Resolved: ${resolved}`, 10, 45);
+  // doc.text(`Pending: ${pending}`, 10, 55);
+
+  doc.save(
+    selectedReports.length > 0 ? "reports-selected.pdf" : "reports.pdf"
+  );
+};
+
+const handleGenerateAIReport = async () => {
+  setLoading(true);
+  try {
+    const dataToSend =
+      selectedReports.length > 0 ? selectedReports : filteredReports;
+
+    const response = await fetch(
+      "https://openrouter.ai/api/v1/chat/completions",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${import.meta.env.VITE_OPENROUTER_API_KEY}`,
+        },
+        body: JSON.stringify({
+          model: "openai/gpt-4o-mini",
+          messages: [
+            {
+              role: "system",
+              content:
+                "You are a professional city admin assistant. Write normally, like a human report. No symbols, no markdown. Be clear, structured, and plain.",
+            },
+            {
+              role: "user",
+              content: `Here are civic reports:\n\n${JSON.stringify(
+                dataToSend.map((r, index) => ({
+                  id: index + 1,
+                  reporter: r.reporter_name,
+                  email: r.reporter_email,
+                  issue: r.issue_type,
+                  description: r.description,
+                  location: r.location,
+                  status: r.status,
+                  created_at: r.created_at,
+                })),
+                null,
+                2
+              )}\n\nPlease provide a clear, long analysis covering:\n- Issue background\n- Community impact\n- Status justification\n- Recommended next steps\n- Risks if unresolved`,
+            },
+          ],
+        }),
+      }
     );
-  };
 
-  const handleGenerateAIReport = async () => {
-    setLoading(true);
-    try {
-      const dataToSend =
-        selectedReports.length > 0 ? selectedReports : filteredReports;
+    const data = await response.json();
+    let summary = data.choices[0].message.content;
+    summary = summary.replace(/[#*]/g, ""); // keep it clean
+    setAiReport(summary);
+  } catch (err) {
+    console.error("AI Report Error:", err);
+    setAiReport("❌ Failed to generate AI report.");
+  } finally {
+    setLoading(false);
+  }
+};
 
-      const response = await fetch(
-        "https://openrouter.ai/api/v1/chat/completions",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${import.meta.env.VITE_OPENROUTER_API_KEY}`,
-          },
-          body: JSON.stringify({
-            model: "openai/gpt-4o-mini",
-            messages: [
-              {
-                role: "system",
-                content:
-                  "You are a professional city admin assistant. Always answer in plain text (no #, no *, no markdown). Expand responses with multiple paragraphs and detailed recommendations.",
-              },
-              {
-                role: "user",
-                content: `Here are civic reports:\n\n${JSON.stringify(
-                  dataToSend.map((r, index) => ({
-                    id: index + 1,
-                    reporter: r.reporter_name,
-                    email: r.reporter_email,
-                    issue: r.issue_type,
-                    description: r.description,
-                    location: r.location,
-                    status: r.status,
-                    created_at: r.created_at,
-                  })),
-                  null,
-                  2
-                )}\n\nPlease provide a long, detailed analysis covering:
-- Issue context & background
-- Community impact
-- Status justification
-- Suggested action plan for city officials
-- Possible risks if unresolved
-Write in a structured but plain-text format.`,
-              },
-            ],
-          }),
-        }
-      );
-
-      const data = await response.json();
-      let summary = data.choices[0].message.content;
-      summary = summary.replace(/[#*]/g, "");
-      setAiReport(summary);
-    } catch (err) {
-      console.error("AI Report Error:", err);
-      setAiReport("❌ Failed to generate AI report.");
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleDownloadAIReport = () => {
     if (!aiReport) return;
