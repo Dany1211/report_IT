@@ -200,11 +200,13 @@ export default function Reports() {
           className="border border-[#FFE4B5] rounded-lg p-2 bg-white shadow-sm"
         >
           <option value="All">All Categories</option>
-          <option value="Potholes">Potholes</option>
-          <option value="Streetlights">Streetlights</option>
-          <option value="Trash">Trash</option>
-          <option value="Graffiti">Graffiti</option>
+          {[...new Set(reports.map((r) => r.issue_type))].map((c) => (
+            <option key={c} value={c}>
+              {c}
+            </option>
+          ))}
         </select>
+
 
         <select
           value={priorityFilter}
