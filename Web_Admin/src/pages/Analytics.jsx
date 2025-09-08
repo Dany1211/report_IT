@@ -115,10 +115,12 @@ export default function Analytics() {
   // Theme colors
   const COLORS = ["#FFA500", "#32CD32", "#FF4500", "#FFB347"];
   const statusColors = {
-    Pending: "#FFB347",
-    Resolved: "#32CD32",
-    Alert: "#FF4500",
+    Pending: "#FF0000",       // 🔴 Red
+    "In Progress": "#FFA500", // 🟠 Orange/Yellow
+    Resolved: "#32CD32",      // 🟢 Green
+    Alert: "#FF4500",         // 🔴 Dark Red/Orange (if you keep it)
   };
+
 
   return (
     <div className="min-h-screen p-6 bg-gradient-to-br from-[#FFF9F0] to-[#FFF1C6]">
@@ -143,34 +145,34 @@ export default function Analytics() {
       </div>
 
       {/* Trend Chart */}
-<div className="bg-white shadow-lg rounded-xl p-6 border border-[#FFE4B5] mb-10">
-  {/* Header with dropdown */}
-  <div className="mb-4 flex items-center gap-4">
-    <h2 className="text-lg font-semibold text-[#333333]">Reported vs Resolved</h2>
-    <select
-      value={timeGrouping}
-      onChange={(e) => setTimeGrouping(e.target.value)}
-      className="border border-[#FFE4B5] rounded-lg p-1 px-2 bg-white"
-    >
-      <option value="Daily">Daily</option>
-      <option value="Weekly">Weekly</option>
-      <option value="Monthly">Monthly</option>
-    </select>
-  </div>
+      <div className="bg-white shadow-lg rounded-xl p-6 border border-[#FFE4B5] mb-10">
+        {/* Header with dropdown */}
+        <div className="mb-4 flex items-center gap-4">
+          <h2 className="text-lg font-semibold text-[#333333]">Reported vs Resolved</h2>
+          <select
+            value={timeGrouping}
+            onChange={(e) => setTimeGrouping(e.target.value)}
+            className="border border-[#FFE4B5] rounded-lg p-1 px-2 bg-white"
+          >
+            <option value="Daily">Daily</option>
+            <option value="Weekly">Weekly</option>
+            <option value="Monthly">Monthly</option>
+          </select>
+        </div>
 
-  {/* Bar Chart */}
-  <ResponsiveContainer width="100%" height={300}>
-    <BarChart data={issuesTrend} barSize={40}>
-      <CartesianGrid strokeDasharray="3 3" stroke="#FFE4B5" />
-      <XAxis dataKey="period" stroke="#555555" />
-      <YAxis stroke="#555555" />
-      <Tooltip contentStyle={{ backgroundColor: "#FFF9F0", borderColor: "#FFE4B5" }} />
-      <Legend />
-      <Bar dataKey="reported" fill="#FFA500" radius={[6, 6, 0, 0]} />
-      <Bar dataKey="resolved" fill="#32CD32" radius={[6, 6, 0, 0]} />
-    </BarChart>
-  </ResponsiveContainer>
-</div>
+        {/* Bar Chart */}
+        <ResponsiveContainer width="100%" height={300}>
+          <BarChart data={issuesTrend} barSize={40}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#FFE4B5" />
+            <XAxis dataKey="period" stroke="#555555" />
+            <YAxis stroke="#555555" />
+            <Tooltip contentStyle={{ backgroundColor: "#FFF9F0", borderColor: "#FFE4B5" }} />
+            <Legend />
+            <Bar dataKey="reported" fill="#FFA500" radius={[6, 6, 0, 0]} />
+            <Bar dataKey="resolved" fill="#32CD32" radius={[6, 6, 0, 0]} />
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
 
 
       {/* Live Issues Map */}
@@ -205,13 +207,26 @@ export default function Analytics() {
           <h2 className="text-lg font-semibold text-[#333333] mb-4">Issues by Category</h2>
           <ResponsiveContainer width="100%" height={250}>
             <PieChart>
-              <Pie data={categoryData} dataKey="value" cx="50%" cy="50%" outerRadius={80} label>
-                {categoryData.map((entry, index) => (
-                  <Cell key={index} fill={COLORS[index % COLORS.length]} />
+              <Pie
+                data={statusData}
+                dataKey="value"
+                cx="50%"
+                cy="50%"
+                outerRadius={80}
+                label
+              >
+                {statusData.map((entry, index) => (
+                  <Cell
+                    key={index}
+                    fill={statusColors[entry.name] || "#808080"} // fallback gray
+                  />
                 ))}
               </Pie>
-              <Tooltip contentStyle={{ backgroundColor: "#FFF9F0", borderColor: "#FFE4B5" }} />
+              <Tooltip
+                contentStyle={{ backgroundColor: "#FFF9F0", borderColor: "#FFE4B5" }}
+              />
             </PieChart>
+
           </ResponsiveContainer>
         </div>
 
