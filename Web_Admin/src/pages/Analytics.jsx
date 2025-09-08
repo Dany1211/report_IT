@@ -208,17 +208,17 @@ export default function Analytics() {
           <ResponsiveContainer width="100%" height={250}>
             <PieChart>
               <Pie
-                data={statusData}
+                data={categoryData}
                 dataKey="value"
                 cx="50%"
                 cy="50%"
                 outerRadius={80}
                 label
               >
-                {statusData.map((entry, index) => (
+                {categoryData.map((entry, index) => (
                   <Cell
                     key={index}
-                    fill={statusColors[entry.name] || "#808080"} // fallback gray
+                    fill={COLORS[index % COLORS.length]} // use COLORS for categories
                   />
                 ))}
               </Pie>
