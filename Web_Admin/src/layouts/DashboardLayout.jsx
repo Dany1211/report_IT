@@ -26,7 +26,7 @@ export default function DashboardLayout() {
       <aside
         className={`${
           isExpanded ? "w-64" : "w-20"
-        } bg-gray-900 text-white transition-all duration-300 p-4 flex flex-col`}
+        } bg-[#332211] text-white transition-all duration-300 p-4 flex flex-col shadow-lg`}
       >
         {/* Toggle button */}
         <button
@@ -44,8 +44,8 @@ export default function DashboardLayout() {
                 className={({ isActive }) =>
                   `flex items-center gap-4 px-3 py-2 rounded-md transition-all duration-200 ${
                     isActive
-                      ? "bg-yellow-500 text-black font-semibold"
-                      : "hover:bg-yellow-500/20 text-white"
+                      ? "bg-[#FFA500] text-[#333333] font-semibold shadow-md"
+                      : "hover:bg-[#FFE4B5]/20 text-white"
                   }`
                 }
               >
@@ -64,9 +64,7 @@ export default function DashboardLayout() {
       </aside>
 
       {/* Main content */}
-    <main className="flex-1 bg-gradient-to-br from-[#FFF7E5] to-white p-6 overflow-y-auto">
-
-
+      <main className="flex-1 bg-gradient-to-br from-[#FFF9F0] to-[#FFF1C6] p-6 overflow-y-auto">
         <Outlet />
       </main>
     </div>

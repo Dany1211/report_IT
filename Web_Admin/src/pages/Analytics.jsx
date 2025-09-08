@@ -12,10 +12,7 @@ export default function Analytics() {
 
   useEffect(() => {
     const fetchReports = async () => {
-      const { data, error } = await supabase
-        .from("reports")
-        .select("*");
-
+      const { data, error } = await supabase.from("reports").select("*");
       if (error) {
         console.error("Error fetching reports:", error);
       } else {
@@ -23,7 +20,6 @@ export default function Analytics() {
       }
       setLoading(false);
     };
-
     fetchReports();
   }, []);
 
@@ -35,7 +31,7 @@ export default function Analytics() {
   const totalIssues = reports.length;
   const resolvedCount = reports.filter(r => r.status === "Resolved").length;
   const pendingCount = reports.filter(r => r.status === "Pending").length;
-  const avgResolutionTime = 4.5; // placeholder until resolved_at column exists
+  const avgResolutionTime = 4.5; // placeholder
 
   // ---------- Monthly Trend ----------
   const monthlyMap = {};
@@ -45,9 +41,7 @@ export default function Analytics() {
       monthlyMap[month] = { month, reported: 0, resolved: 0 };
     }
     monthlyMap[month].reported++;
-    if (r.status === "Resolved") {
-      monthlyMap[month].resolved++;
-    }
+    if (r.status === "Resolved") monthlyMap[month].resolved++;
   });
   const issuesTrend = Object.values(monthlyMap);
 
@@ -65,7 +59,7 @@ export default function Analytics() {
   });
   const statusData = Object.entries(statusMap).map(([name, value]) => ({ name, value }));
 
-  // ---------- Priority (placeholder until column exists) ----------
+  // ---------- Priority (placeholder) ----------
   const priorityData = [
     { name: "High", value: 0 },
     { name: "Medium", value: 0 },
@@ -78,46 +72,45 @@ export default function Analytics() {
     { week: "Week 2", avgTime: 0 },
   ];
 
-  // Theme colors
-  const COLORS = ["#FFA500", "#32CD32", "#FF4500", "#3b82f6"]; // adjusted
-
+  // Theme colors (aligned with Dashboard)
+  const COLORS = ["#FFA500", "#32CD32", "#FF4500", "#FFB347"];
   const statusColors = {
-    "Pending": "#FFB347",
-    "Resolved": "#32CD32",
-    "Alert": "#FF4500"
+    Pending: "#FFB347",
+    Resolved: "#32CD32",
+    Alert: "#FF4500"
   };
 
   return (
-    <div className="min-h-screen p-6 bg-gradient-to-b from-[#FFF9F0] to-[#FFF1C6]">
+    <div className="min-h-screen p-6 bg-gradient-to-br from-[#FFF9F0] to-[#FFF1C6]">
       {/* KPI Overview */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
-        <div className="bg-white shadow-sm rounded-xl p-4 text-center border border-gray-100">
-          <h3 className="text-[#333333] text-gray-500 mb-2">Total Issues</h3>
+        <div className="bg-white shadow-lg rounded-xl p-4 text-center border border-[#FFE4B5]">
+          <h3 className="text-sm text-[#555555] mb-2">Total Issues</h3>
           <p className="text-2xl font-bold text-[#333333]">{totalIssues}</p>
         </div>
-        <div className="bg-white shadow-sm rounded-xl p-4 text-center border border-gray-100">
-          <h3 className="text-[#333333] text-gray-500 mb-2">Resolved</h3>
+        <div className="bg-white shadow-lg rounded-xl p-4 text-center border border-[#FFE4B5]">
+          <h3 className="text-sm text-[#555555] mb-2">Resolved</h3>
           <p className="text-2xl font-bold text-[#32CD32]">{resolvedCount}</p>
         </div>
-        <div className="bg-white shadow-sm rounded-xl p-4 text-center border border-gray-100">
-          <h3 className="text-[#333333] text-gray-500 mb-2">Pending</h3>
+        <div className="bg-white shadow-lg rounded-xl p-4 text-center border border-[#FFE4B5]">
+          <h3 className="text-sm text-[#555555] mb-2">Pending</h3>
           <p className="text-2xl font-bold text-[#FFB347]">{pendingCount}</p>
         </div>
-        <div className="bg-white shadow-sm rounded-xl p-4 text-center border border-gray-100">
-          <h3 className="text-[#333333] text-gray-500 mb-2">Avg. Resolution Time</h3>
+        <div className="bg-white shadow-lg rounded-xl p-4 text-center border border-[#FFE4B5]">
+          <h3 className="text-sm text-[#555555] mb-2">Avg. Resolution Time</h3>
           <p className="text-2xl font-bold text-[#FFA500]">{avgResolutionTime}h</p>
         </div>
       </div>
 
       {/* Trend Chart */}
-      <div className="bg-white shadow-sm rounded-xl p-6 border border-gray-100 mb-10">
+      <div className="bg-white shadow-lg rounded-xl p-6 border border-[#FFE4B5] mb-10">
         <h2 className="text-lg font-semibold text-[#333333] mb-4">Reported vs Resolved (Monthly)</h2>
         <ResponsiveContainer width="100%" height={300}>
           <BarChart data={issuesTrend} barSize={40}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+            <CartesianGrid strokeDasharray="3 3" stroke="#FFE4B5" />
             <XAxis dataKey="month" stroke="#555555" />
             <YAxis stroke="#555555" />
-            <Tooltip />
+            <Tooltip contentStyle={{ backgroundColor: "#FFF9F0", borderColor: "#FFE4B5" }} />
             <Legend />
             <Bar dataKey="reported" fill="#FFA500" radius={[6, 6, 0, 0]} />
             <Bar dataKey="resolved" fill="#32CD32" radius={[6, 6, 0, 0]} />
@@ -127,7 +120,7 @@ export default function Analytics() {
 
       {/* Breakdown Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-10">
-        <div className="bg-white shadow-sm rounded-xl p-6 border border-gray-100">
+        <div className="bg-white shadow-lg rounded-xl p-6 border border-[#FFE4B5]">
           <h2 className="text-lg font-semibold text-[#333333] mb-4">Issues by Category</h2>
           <ResponsiveContainer width="100%" height={250}>
             <PieChart>
@@ -136,12 +129,12 @@ export default function Analytics() {
                   <Cell key={index} fill={COLORS[index % COLORS.length]} />
                 ))}
               </Pie>
-              <Tooltip />
+              <Tooltip contentStyle={{ backgroundColor: "#FFF9F0", borderColor: "#FFE4B5" }} />
             </PieChart>
           </ResponsiveContainer>
         </div>
 
-        <div className="bg-white shadow-sm rounded-xl p-6 border border-gray-100">
+        <div className="bg-white shadow-lg rounded-xl p-6 border border-[#FFE4B5]">
           <h2 className="text-lg font-semibold text-[#333333] mb-4">Issues by Status</h2>
           <ResponsiveContainer width="100%" height={250}>
             <PieChart>
@@ -150,12 +143,12 @@ export default function Analytics() {
                   <Cell key={index} fill={statusColors[entry.name] || COLORS[index % COLORS.length]} />
                 ))}
               </Pie>
-              <Tooltip />
+              <Tooltip contentStyle={{ backgroundColor: "#FFF9F0", borderColor: "#FFE4B5" }} />
             </PieChart>
           </ResponsiveContainer>
         </div>
 
-        <div className="bg-white shadow-sm rounded-xl p-6 border border-gray-100">
+        <div className="bg-white shadow-lg rounded-xl p-6 border border-[#FFE4B5]">
           <h2 className="text-lg font-semibold text-[#333333] mb-4">Issues by Priority</h2>
           <ResponsiveContainer width="100%" height={250}>
             <PieChart>
@@ -164,21 +157,21 @@ export default function Analytics() {
                   <Cell key={index} fill={COLORS[index % COLORS.length]} />
                 ))}
               </Pie>
-              <Tooltip />
+              <Tooltip contentStyle={{ backgroundColor: "#FFF9F0", borderColor: "#FFE4B5" }} />
             </PieChart>
           </ResponsiveContainer>
         </div>
       </div>
 
       {/* Performance Chart */}
-      <div className="bg-white shadow-sm rounded-xl p-6 border border-gray-100 mb-10">
+      <div className="bg-white shadow-lg rounded-xl p-6 border border-[#FFE4B5] mb-10">
         <h2 className="text-lg font-semibold text-[#333333] mb-4">Avg. Resolution Time (Weekly)</h2>
         <ResponsiveContainer width="100%" height={300}>
           <LineChart data={resolutionTimeTrend}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+            <CartesianGrid strokeDasharray="3 3" stroke="#FFE4B5" />
             <XAxis dataKey="week" stroke="#555555" />
             <YAxis stroke="#555555" label={{ value: "Hours", angle: -90, position: "insideLeft" }} />
-            <Tooltip />
+            <Tooltip contentStyle={{ backgroundColor: "#FFF9F0", borderColor: "#FFE4B5" }} />
             <Legend />
             <Line type="monotone" dataKey="avgTime" stroke="#FFA500" strokeWidth={3} />
           </LineChart>

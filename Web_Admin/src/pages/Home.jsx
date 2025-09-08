@@ -4,12 +4,12 @@ import { AlertCircle, CheckCircle, Clock, Flame } from "lucide-react";
 
 // StatCard component
 const StatCard = ({ title, value, icon }) => (
-  <div className="bg-white rounded-xl shadow-lg p-6 flex items-center justify-between">
+  <div className="bg-white rounded-xl shadow-lg p-6 flex items-center justify-between border border-[#FFE4B5]">
     <div>
-      <h3 className="text-gray-500 text-sm font-medium">{title}</h3>
+      <h3 className="text-[#555555] text-sm font-medium">{title}</h3>
       <p className="text-2xl font-semibold text-[#333333] mt-1">{value}</p>
     </div>
-    <div className="text-[#FFA500] bg-[#FFE4B5] rounded-full p-3 flex items-center justify-center">
+    <div className="text-white bg-[#FFA500] rounded-full p-3 flex items-center justify-center shadow-md">
       {icon}
     </div>
   </div>
@@ -21,11 +21,11 @@ const getStatusColor = (status) => {
   const normalized = status.trim().toLowerCase();
   switch (normalized) {
     case "pending":
-      return "text-[#FF4500] bg-[#FF4500]/10";
+      return "text-[#FFB347] bg-[#FFB347]/20"; // soft orange
     case "in progress":
-      return "text-[#FFB347] bg-[#FFB347]/10";
+      return "text-[#FFA500] bg-[#FFA500]/20"; // bright warm orange
     case "resolved":
-      return "text-[#32CD32] bg-[#32CD32]/10";
+      return "text-[#32CD32] bg-[#32CD32]/20"; // green
     default:
       return "text-gray-500 bg-gray-500/10";
   }
@@ -33,32 +33,32 @@ const getStatusColor = (status) => {
 
 // Table component
 const Table = ({ data }) => (
-  <div className="overflow-x-auto bg-white rounded-xl shadow-lg">
-    <table className="min-w-full divide-y divide-gray-200">
+  <div className="overflow-x-auto bg-white rounded-xl shadow-lg border border-[#FFE4B5]">
+    <table className="min-w-full divide-y divide-[#FFE4B5]">
       <thead className="bg-[#FFF9F0]">
         <tr>
-          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+          <th className="px-6 py-3 text-left text-xs font-medium text-[#555555] uppercase tracking-wider">
             Issue
           </th>
-          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+          <th className="px-6 py-3 text-left text-xs font-medium text-[#555555] uppercase tracking-wider">
             Status
           </th>
-          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+          <th className="px-6 py-3 text-left text-xs font-medium text-[#555555] uppercase tracking-wider">
             Location
           </th>
         </tr>
       </thead>
-      <tbody className="divide-y divide-gray-200">
+      <tbody className="divide-y divide-[#FFF1C6]">
         {data.map((report) => (
-          <tr key={report.id}>
+          <tr key={report.id} className="hover:bg-[#FFF9F0] transition">
             <td className="px-6 py-4 whitespace-nowrap">
-              <div className="text-sm font-medium text-[#555555]">
+              <div className="text-sm font-medium text-[#333333]">
                 {report.issue_type}
               </div>
             </td>
             <td className="px-6 py-4 whitespace-nowrap">
               <span
-                className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(
+                className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(
                   report.status
                 )}`}
               >
@@ -107,7 +107,7 @@ export default function Dashboard() {
   const inProgressCount = reports.filter((r) => r.status?.trim().toLowerCase() === "in progress").length;
 
   return (
-    <div className="min-h-screen w-full bg-gradient-to-br from-[#FFF9F0] to-[#FFF1C6] overflow-hidden">
+    <div className="min-h-screen w-full bg-gradient-to-br from-[#FFF9F0] to-[#fff1c6] overflow-hidden">
       <div className="p-8">
         <h1 className="text-2xl font-bold text-[#333333] mb-6">Dashboard</h1>
 
@@ -137,18 +137,19 @@ export default function Dashboard() {
 
         {/* Recent Reports */}
         <div className="mt-8">
-          <h2 className="text-xl font-semibold text-[#555555] mb-4">
+          <h2 className="text-xl font-semibold text-[#333333] mb-4">
             Recent Reports
           </h2>
           {loading ? (
-            <p className="text-gray-500">Loading reports...</p>
+            <p className="text-[#555555]">Loading reports...</p>
           ) : reports.length > 0 ? (
             <Table data={reports} />
           ) : (
-            <p className="text-gray-500">No reports available.</p>
+            <p className="text-[#555555]">No reports available.</p>
           )}
         </div>
       </div>
     </div>
   );
 }
+
