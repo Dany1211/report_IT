@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState,useEffect } from 'react';
 import {
   View,
   Text,
@@ -19,7 +19,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import * as ImagePicker from 'expo-image-picker';
 import * as Location from 'expo-location';
 import { Picker } from "@react-native-picker/picker";
-
+import { supabase } from "../../supabaseClient";
 
 const { width } = Dimensions.get('window');
 
@@ -80,6 +80,9 @@ const HomeScreen: React.FC = () => {
   const [location, setLocation] = useState('');
   const [isAutoLocation, setIsAutoLocation] = useState(true);
   
+
+  const [user, setUser] = useState<{ name: string; email: string } | null>(null);
+
   // New State for Loading Animation
   const [isLocating, setIsLocating] = useState(false); 
 
@@ -293,6 +296,37 @@ const HomeScreen: React.FC = () => {
   const formatTimestamp = (timestamp: string) => {
     return new Date(timestamp).toLocaleDateString();
   };
+  useEffect(() => {
+      const fetchUser = async () => {
+        try {
+          const {
+            data: { user },
+          } = await supabase.auth.getUser();
+  
+          if (user) {
+            const { data, error } = await supabase
+              .from("profiles")
+              .select("name, email")
+              .eq("id", user.id)
+              .single();
+  
+            if (error) {
+              console.error("Error fetching profile:", error.message);
+            } else {
+              setUser({
+                name: data?.name || "Unknown",
+                email: data?.email || "No email",
+              });
+            }
+          }
+        } catch (err) {
+          console.error("Unexpected error fetching user:", err);
+        }
+      };
+  
+      fetchUser();
+    }, []);
+  
 
   return (
     <LinearGradient
@@ -305,7 +339,7 @@ const HomeScreen: React.FC = () => {
         {/* Header Section with Notification */}
         <View style={styles.header}>
           <View>
-            <Text style={styles.welcomeText}>Welcome, Citizen!</Text>
+            <Text style={styles.welcomeText}>Welcome, {user?.name || "Loading..."}!</Text>
             <Text style={styles.subtitleText}>Help improve your city with one tap.</Text>
           </View>
           <TouchableOpacity
