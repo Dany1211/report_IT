@@ -17,15 +17,13 @@ import { Picker } from "@react-native-picker/picker";
 import * as ImagePicker from 'expo-image-picker';
 import * as Location from 'expo-location';
 import { supabase } from '../../supabaseClient';
-import * as FileSystem from 'expo-file-system';
-import { Buffer } from 'buffer';
 
 const { width } = Dimensions.get('window');
 
 interface ReportModalProps {
   visible: boolean;
   onClose: () => void;
-  onSubmit?: () => void; // optional callback after successful submit
+  onSubmit?: () => void;
 }
 
 const ReportModal: React.FC<ReportModalProps> = ({ visible, onClose, onSubmit }) => {
@@ -38,7 +36,7 @@ const ReportModal: React.FC<ReportModalProps> = ({ visible, onClose, onSubmit })
   const [isLocating, setIsLocating] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  /** Image Picker */
+  /** Image Picker (UI Only) */
   const pickImages = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
@@ -100,71 +98,50 @@ const ReportModal: React.FC<ReportModalProps> = ({ visible, onClose, onSubmit })
     Alert.alert('AI Generated', 'Description has been automatically generated');
   };
 
-  /** Upload single image to Supabase Storage */
-  const uploadImageToStorage = async (uri: string, reportId: string) => {
-    try {
-      const fileExt = uri.split('.').pop();
-      const fileName = `report-images/${reportId}-${Date.now()}.${fileExt}`;
-
-      const base64 = await FileSystem.readAsStringAsync(uri, { encoding: FileSystem.EncodingType.Base64 });
-      const buffer = Buffer.from(base64, 'base64');
-
-      const { error } = await supabase.storage.from('report-images').upload(fileName, buffer, {
-        contentType: 'image/jpeg',
-        upsert: true,
-      });
-
-      if (error) throw error;
-      return fileName; // store path in DB
-    } catch (err) {
-      console.error('Upload failed:', err);
-      throw err;
-    }
-  };
-
   /** Submit Report */
-  const handleSubmit = async () => {
-    if (!issueType.trim() || !description.trim() || !location.trim()) {
-      Alert.alert('Error', 'Please fill all required fields');
-      return;
-    }
-
+  const handleSubmitReport = async () => {
     setIsSubmitting(true);
     try {
-      // 1️⃣ Insert report
-      const { data: report, error: reportError } = await supabase
-        .from('reports')
-        .insert([{
+      // 1. Get current user
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      if (userError) throw userError;
+      if (!user) throw new Error("No user is logged in");
+
+      // 2. Fetch name from profiles
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('name')
+        .eq('id', user.id)
+        .single();
+      if (profileError) throw profileError;
+
+      const reporterName = profile?.name || user.email?.split('@')[0] || 'Anonymous';
+
+      // 3. Insert report with local time
+// Generate local time in ISO format (YYYY-MM-DDTHH:MM:SS)
+const now = new Date();
+const pad = (n: number) => n.toString().padStart(2, '0');
+const createdAt = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+// local time in ISO
+      const { error: insertError } = await supabase.from('reports').insert([
+        {
           issue_type: issueType.trim(),
           description: description.trim(),
           location,
           priority: urgency,
-          reporter_name: 'Anonymous',
-          reporter_email: 'user@example.com',
-        }])
-        .select()
-        .single();
+          reporter_name: reporterName,
+          reporter_email: user.email,
+          user_id: user.id,
+          created_at: createdAt,
+        },
+      ]);
+      if (insertError) throw insertError;
 
-      if (reportError || !report) throw reportError;
-
-      // 2️⃣ Upload images to storage + insert into report_images
-      for (const uri of selectedImages) {
-        const path = await uploadImageToStorage(uri, report.id);
-        const { error: imgError } = await supabase.from('report_images').insert([{
-          report_id: report.id,
-          image_url: path,
-          uploaded_by: 'user',
-        }]);
-        if (imgError) throw imgError;
-      }
-
-      Alert.alert('Success', 'Report submitted successfully');
+      Alert.alert("Success", "Report submitted successfully!");
       resetForm();
-      onSubmit?.();
-      onClose();
+      if (onSubmit) onSubmit();
     } catch (err: any) {
-      console.error('Submit Error:', err);
-      Alert.alert('Error', err?.message || 'Failed to submit report');
+      Alert.alert("Submit Error", err.message);
     } finally {
       setIsSubmitting(false);
     }
@@ -184,18 +161,9 @@ const ReportModal: React.FC<ReportModalProps> = ({ visible, onClose, onSubmit })
     onClose();
   };
 
-  /** ---------- UI ---------- */
   return (
-    <Modal
-      animationType="slide"
-      transparent
-      visible={visible}
-      onRequestClose={handleClose}
-    >
-      <KeyboardAvoidingView
-        style={styles.bottomModalOverlay}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      >
+    <Modal animationType="slide" transparent visible={visible} onRequestClose={handleClose}>
+      <KeyboardAvoidingView style={styles.bottomModalOverlay} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
         <View style={styles.bottomModalContainer}>
           <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
             <Text style={styles.modalTitle}>Report New Issue</Text>
@@ -242,7 +210,7 @@ const ReportModal: React.FC<ReportModalProps> = ({ visible, onClose, onSubmit })
               </TouchableOpacity>
             </View>
 
-            <Text style={styles.inputLabel}>Photos (Optional)</Text>
+            <Text style={styles.inputLabel}>Photos (UI Only)</Text>
             <TouchableOpacity style={styles.photoButton} onPress={pickImages}>
               <Text style={styles.photoButtonText}>Add Photos</Text>
             </TouchableOpacity>
@@ -284,7 +252,7 @@ const ReportModal: React.FC<ReportModalProps> = ({ visible, onClose, onSubmit })
               <TouchableOpacity style={styles.cancelButton} onPress={handleClose}>
                 <Text style={styles.cancelButtonText}>Cancel</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.submitButton} onPress={handleSubmit} disabled={isSubmitting}>
+              <TouchableOpacity style={styles.submitButton} onPress={handleSubmitReport} disabled={isSubmitting}>
                 <Text style={styles.submitButtonText}>{isSubmitting ? 'Submitting...' : 'Submit Report'}</Text>
               </TouchableOpacity>
             </View>
