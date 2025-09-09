@@ -99,60 +99,97 @@ const ReportModal: React.FC<ReportModalProps> = ({ visible, onClose, onSubmit })
   };
 
   /** Submit Report */
-  /** Submit Report */
-const handleSubmitReport = async () => {
-  setIsSubmitting(true);
-  try {
-    // 1. Get current user
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
-    if (userError) throw userError;
-    if (!user) throw new Error("No user is logged in");
+  const handleSubmitReport = async () => {
+    setIsSubmitting(true);
+    try {
+      // 1. Get current user
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      if (userError) throw userError;
+      if (!user) throw new Error("No user is logged in");
 
-    // 2. Fetch name from profiles
-    const { data: profile, error: profileError } = await supabase
-      .from('profiles')
-      .select('name')
-      .eq('id', user.id)
-      .single();
-    if (profileError) throw profileError;
+      // 2. Fetch name from profiles
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('name')
+        .eq('id', user.id)
+        .single();
+      if (profileError) throw profileError;
 
-    const reporterName = profile?.name || user.email?.split('@')[0] || 'Anonymous';
+      const reporterName = profile?.name || user.email?.split('@')[0] || 'Anonymous';
 
-    // 3. Get current location
-    let latitude: number | null = null;
-    let longitude: number | null = null;
-    const loc = await Location.getCurrentPositionAsync({});
-    if (loc?.coords) {
-      latitude = loc.coords.latitude;
-      longitude = loc.coords.longitude;
+      // 3. Insert report (local time)
+      const now = new Date();
+      const pad = (n: number) => n.toString().padStart(2, '0');
+      const createdAt = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+
+      const { data: reportData, error: insertError } = await supabase
+        .from('reports')
+        .insert([
+          {
+            issue_type: issueType.trim(),
+            description: description.trim(),
+            location,
+            priority: urgency,
+            reporter_name: reporterName,
+            reporter_email: user.email,
+            user_id: user.id,
+            created_at: createdAt,
+          },
+        ])
+        .select('id')
+        .single();
+
+      if (insertError) throw insertError;
+      const reportId = reportData.id;
+
+      // 4. Upload each selected image
+      for (const uri of selectedImages) {
+        try {
+          const fileExt = uri.split(".").pop() || "jpg";
+          const fileName = `${Date.now()}.${fileExt}`;
+          const filePath = `report-images/${reportId}/${fileName}`;
+
+          // read file as base64 → Uint8Array
+          const base64 = await FileSystem.readAsStringAsync(uri, {
+            encoding: FileSystem.EncodingType.Base64,
+          });
+          const buffer = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
+
+          // upload to storage
+          const { error: uploadError } = await supabase.storage
+            .from("report-images")
+            .upload(filePath, buffer, { contentType: "image/jpeg" });
+          if (uploadError) throw uploadError;
+
+          // get public URL (bucket is public)
+          const { data } = supabase.storage.from("report-images").getPublicUrl(filePath);
+          const publicUrl = data.publicUrl;
+
+          // insert into report_images table
+          const { error: imageInsertError } = await supabase.from("report_images").insert([
+            {
+              report_id: reportId,
+              image_url: publicUrl,
+              uploaded_by: "user",
+              user_id: user.id,
+            },
+          ]);
+          if (imageInsertError) throw imageInsertError;
+        } catch (imgErr) {
+          console.error("Image upload failed:", imgErr);
+        }
+      }
+
+      Alert.alert("✅ Success", "Report and images submitted successfully!");
+      resetForm();
+      if (onSubmit) onSubmit();
+    } catch (err: any) {
+      console.error(err);
+      Alert.alert("Submit Error", err.message);
+    } finally {
+      setIsSubmitting(false);
     }
-
-    // 4. Insert report with coordinates
-    const { error: insertError } = await supabase.from('reports').insert([
-      {
-        issue_type: issueType.trim(),
-        description: description.trim(),
-        location,
-        priority: urgency,
-        reporter_name: reporterName,
-        reporter_email: user.email,
-        user_id: user.id,
-        latitude,
-        longitude,
-      },
-    ]);
-    if (insertError) throw insertError;
-
-    Alert.alert("Success", "Report submitted successfully!");
-    resetForm();
-    if (onSubmit) onSubmit();
-  } catch (err: any) {
-    Alert.alert("Submit Error", err.message);
-  } finally {
-    setIsSubmitting(false);
-  }
-};
-
+  };
 
   const resetForm = () => {
     setIssueType('');

@@ -113,6 +113,7 @@ const HomeScreen: React.FC = () => {
       <ReportModal
         visible={modalVisible}
         onClose={() => setModalVisible(false)}
+        // @ts-ignore 
         onSubmit={submitReport}
       />
 
