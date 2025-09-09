@@ -1,3 +1,4 @@
+// ReportModal.tsx
 import React, { useState } from 'react';
 import {
   Modal,
@@ -16,6 +17,7 @@ import {
 import { Picker } from "@react-native-picker/picker";
 import * as ImagePicker from 'expo-image-picker';
 import * as Location from 'expo-location';
+import * as FileSystem from "expo-file-system";
 import { supabase } from '../../supabaseClient';
 
 const { width } = Dimensions.get('window');
@@ -36,7 +38,7 @@ const ReportModal: React.FC<ReportModalProps> = ({ visible, onClose, onSubmit })
   const [isLocating, setIsLocating] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  /** Image Picker (UI Only) */
+  /** Image Picker */
   const pickImages = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
@@ -46,9 +48,7 @@ const ReportModal: React.FC<ReportModalProps> = ({ visible, onClose, onSubmit })
 
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [4, 3],
-      quality: 1,
+      quality: 0.8,
       allowsMultipleSelection: true,
     });
 
@@ -117,30 +117,74 @@ const ReportModal: React.FC<ReportModalProps> = ({ visible, onClose, onSubmit })
 
       const reporterName = profile?.name || user.email?.split('@')[0] || 'Anonymous';
 
-      // 3. Insert report with local time
-// Generate local time in ISO format (YYYY-MM-DDTHH:MM:SS)
-const now = new Date();
-const pad = (n: number) => n.toString().padStart(2, '0');
-const createdAt = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
-// local time in ISO
-      const { error: insertError } = await supabase.from('reports').insert([
-        {
-          issue_type: issueType.trim(),
-          description: description.trim(),
-          location,
-          priority: urgency,
-          reporter_name: reporterName,
-          reporter_email: user.email,
-          user_id: user.id,
-          created_at: createdAt,
-        },
-      ]);
-      if (insertError) throw insertError;
+      // 3. Insert report (local time)
+      const now = new Date();
+      const pad = (n: number) => n.toString().padStart(2, '0');
+      const createdAt = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
 
-      Alert.alert("Success", "Report submitted successfully!");
+      const { data: reportData, error: insertError } = await supabase
+        .from('reports')
+        .insert([
+          {
+            issue_type: issueType.trim(),
+            description: description.trim(),
+            location,
+            priority: urgency,
+            reporter_name: reporterName,
+            reporter_email: user.email,
+            user_id: user.id,
+            created_at: createdAt,
+          },
+        ])
+        .select('id')
+        .single();
+
+      if (insertError) throw insertError;
+      const reportId = reportData.id;
+
+      // 4. Upload each selected image
+      for (const uri of selectedImages) {
+        try {
+          const fileExt = uri.split(".").pop() || "jpg";
+          const fileName = `${Date.now()}.${fileExt}`;
+          const filePath = `report-images/${reportId}/${fileName}`;
+
+          // read file as base64 → Uint8Array
+          const base64 = await FileSystem.readAsStringAsync(uri, {
+            encoding: FileSystem.EncodingType.Base64,
+          });
+          const buffer = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
+
+          // upload to storage
+          const { error: uploadError } = await supabase.storage
+            .from("report-images")
+            .upload(filePath, buffer, { contentType: "image/jpeg" });
+          if (uploadError) throw uploadError;
+
+          // get public URL (bucket is public)
+          const { data } = supabase.storage.from("report-images").getPublicUrl(filePath);
+          const publicUrl = data.publicUrl;
+
+          // insert into report_images table
+          const { error: imageInsertError } = await supabase.from("report_images").insert([
+            {
+              report_id: reportId,
+              image_url: publicUrl,
+              uploaded_by: "user",
+              user_id: user.id,
+            },
+          ]);
+          if (imageInsertError) throw imageInsertError;
+        } catch (imgErr) {
+          console.error("Image upload failed:", imgErr);
+        }
+      }
+
+      Alert.alert("✅ Success", "Report and images submitted successfully!");
       resetForm();
       if (onSubmit) onSubmit();
     } catch (err: any) {
+      console.error(err);
       Alert.alert("Submit Error", err.message);
     } finally {
       setIsSubmitting(false);
@@ -210,7 +254,7 @@ const createdAt = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.get
               </TouchableOpacity>
             </View>
 
-            <Text style={styles.inputLabel}>Photos (UI Only)</Text>
+            <Text style={styles.inputLabel}>Photos</Text>
             <TouchableOpacity style={styles.photoButton} onPress={pickImages}>
               <Text style={styles.photoButtonText}>Add Photos</Text>
             </TouchableOpacity>
