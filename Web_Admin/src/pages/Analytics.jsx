@@ -9,7 +9,7 @@ import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 
-// Fix Leaflet marker icons (important for bundlers like Vite/CRA)
+// Fix Leaflet marker icons
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
@@ -17,27 +17,62 @@ L.Icon.Default.mergeOptions({
   shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
 });
 
+// Add your Geoapify API Key
+const GEOAPIFY_API_KEY = '4aec0d60f3684c7ea113a00db8f564b5';
+
 export default function Analytics() {
   const [reports, setReports] = useState([]);
+  // New state to hold reports after geocoding
+  const [geocodedReports, setGeocodedReports] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [timeGrouping, setTimeGrouping] = useState("Monthly"); // options: "Daily", "Weekly", "Monthly"
-
+  const [timeGrouping, setTimeGrouping] = useState("Monthly");
 
   useEffect(() => {
-    const fetchReports = async () => {
-      const { data, error } = await supabase.from("reports").select("*");
+    const fetchAndGeocodeReports = async () => {
+      setLoading(true);
+      
+      // 1. Fetch reports from Supabase
+      const { data: initialReports, error } = await supabase.from("reports").select("*");
       if (error) {
         console.error("Error fetching reports:", error);
-      } else {
-        setReports(data || []);
+        setLoading(false);
+        return;
       }
+      setReports(initialReports || []);
+
+      // 2. Geocode each report's location text using Geoapify
+      // We use Promise.all to run all API calls concurrently for speed
+      const geocodingPromises = (initialReports || []).map(async (report) => {
+        // Only geocode if the report has a location and the API key is valid
+        if (!report.location || GEOAPIFY_API_KEY === 'YOUR_GEOAPIFY_API_KEY' || !GEOAPIFY_API_KEY) {
+            return report; // Return original report if no location or API key
+        }
+        try {
+          const encodedLocation = encodeURIComponent(report.location);
+          const url = `https://api.geoapify.com/v1/geocode/search?text=${encodedLocation}&apiKey=${GEOAPIFY_API_KEY}`;
+          const response = await fetch(url);
+          const data = await response.json();
+          if (data.features && data.features.length > 0) {
+            const { coordinates } = data.features[0].geometry;
+            // Return the original report with new lat/lng properties
+            return { ...report, lng: coordinates[0], lat: coordinates[1] };
+          }
+        } catch (err) {
+          console.error("Geocoding failed for:", report.location, err);
+        }
+        return report; // Return original report if geocoding fails
+      });
+      
+      const resolvedReports = await Promise.all(geocodingPromises);
+      setGeocodedReports(resolvedReports);
       setLoading(false);
     };
-    fetchReports();
+
+    fetchAndGeocodeReports();
   }, []);
 
   if (loading) {
-    return <p className="p-6 text-[#555555]">Loading analytics...</p>;
+    return <p className="p-6 text-[#555555]">Loading and geocoding reports...</p>;
   }
 
   // ---------- KPI Overview ----------
@@ -93,32 +128,25 @@ export default function Analytics() {
   });
   const priorityData = Object.entries(priorityMap).map(([name, value]) => ({ name, value }));
 
-  // ---------- Geo Reports for Map ----------
-  const geoReports = reports.filter(r => {
-    const lat = r.lat || r.latitude || r.location_lat || r?.location?.lat;
-    const lng = r.lng || r.longitude || r.location_lng || r?.location?.lng;
-    return lat && lng;
-  });
+  // Geo Reports for Map now uses the geocodedReports state
+  const geoReports = geocodedReports.filter(r => r.lat && r.lng);
 
   // Default center: India if no reports
   const avgLat =
     geoReports.length > 0
-      ? geoReports.reduce((s, r) => s + (r.lat || r.latitude || r.location_lat || r?.location?.lat), 0) /
-      geoReports.length
+      ? geoReports.reduce((s, r) => s + r.lat, 0) / geoReports.length
       : 20.5937;
   const avgLng =
     geoReports.length > 0
-      ? geoReports.reduce((s, r) => s + (r.lng || r.longitude || r.location_lng || r?.location?.lng), 0) /
-      geoReports.length
+      ? geoReports.reduce((s, r) => s + r.lng, 0) / geoReports.length
       : 78.9629;
 
   // Theme colors
   const COLORS = ["#FFA500", "#32CD32", "#FF4500", "#FFB347"];
   const statusColors = {
-    Pending: "#FF0000",       // 🔴 Red
-    "In Progress": "#FFA500", // 🟠 Orange/Yellow
-    Resolved: "#32CD32",      // 🟢 Green
-    Alert: "#FF4500",         // 🔴 Dark Red/Orange (if you keep it)
+    Pending: "#FF0000",        // 🔴 Red
+    "In Progress": "#FFA500",  // 🟠 Orange/Yellow
+    Resolved: "#32CD32",       // 🟢 Green
   };
 
 
@@ -143,6 +171,8 @@ export default function Analytics() {
           <p className="text-2xl font-bold text-[#FFA500]">{avgResolutionTime}h</p>
         </div>
       </div>
+
+      ---
 
       {/* Trend Chart */}
       <div className="bg-white shadow-lg rounded-xl p-6 border border-[#FFE4B5] mb-10">
@@ -174,32 +204,32 @@ export default function Analytics() {
         </ResponsiveContainer>
       </div>
 
+      ---
 
       {/* Live Issues Map */}
       <div className="bg-white shadow-lg rounded-xl p-6 border border-[#FFE4B5] mb-10">
         <h2 className="text-lg font-semibold text-[#333333] mb-4">Live Issues Map</h2>
-        <MapContainer center={[avgLat, avgLng]} zoom={5} className="h-[400px] w-full rounded-lg z-0">
+        <MapContainer center={[avgLat, avgLng]} zoom={geoReports.length > 0 ? 6 : 5} className="h-[400px] w-full rounded-lg z-0">
           <TileLayer
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             attribution='&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors'
           />
           {geoReports.map((r, idx) => {
-            const lat = r.lat || r.latitude || r.location_lat || r?.location?.lat;
-            const lng = r.lng || r.longitude || r.location_lng || r?.location?.lng;
             return (
-              <Marker key={idx} position={[lat, lng]}>
+              <Marker key={r.id || idx} position={[r.lat, r.lng]}>
                 <Popup>
                   <b>{r.issue_type}</b> <br />
                   Status: {r.status} <br />
-                  Priority: {r.priority || "Low"} <br />
-                  Reported: {format(new Date(r.created_at), "PP")} <br />
-                  {r.description}
+                  Location: {r.location} <br />
+                  Reported: {format(new Date(r.created_at), "PP")}
                 </Popup>
               </Marker>
             );
           })}
         </MapContainer>
       </div>
+      
+      ---
 
       {/* Breakdown Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-10">
@@ -218,7 +248,7 @@ export default function Analytics() {
                 {categoryData.map((entry, index) => (
                   <Cell
                     key={index}
-                    fill={COLORS[index % COLORS.length]} // use COLORS for categories
+                    fill={COLORS[index % COLORS.length]}
                   />
                 ))}
               </Pie>
@@ -226,7 +256,6 @@ export default function Analytics() {
                 contentStyle={{ backgroundColor: "#FFF9F0", borderColor: "#FFE4B5" }}
               />
             </PieChart>
-
           </ResponsiveContainer>
         </div>
 
@@ -261,3 +290,5 @@ export default function Analytics() {
     </div>
   );
 }
+
+
