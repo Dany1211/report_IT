@@ -26,7 +26,7 @@ export default function Analytics() {
   const [pageLoading, setPageLoading] = useState(true);
   const [mapLoading, setMapLoading] = useState(true);
   const [timeGrouping, setTimeGrouping] = useState("Monthly");
-  const [selectedReport, setSelectedReport] = useState(null); // <-- modal state
+  const [selectedReport, setSelectedReport] = useState(null); 
   const affectedTableRef = useRef(null);
 
   const navigate = useNavigate();
@@ -307,6 +307,14 @@ export default function Analytics() {
                 <p><b>Affected Count:</b> {selectedReport.affected_count}</p>
                 <p><b>Reported At:</b> {format(new Date(selectedReport.created_at), "PPpp")}</p>
               </div>
+              <button
+                className="mt-4 px-4 py-2 bg-orange-500 text-white rounded-xl shadow-lg hover:bg-orange-600 transition"
+                onClick={() => {
+                  navigate("/reports", { state: { reportId: selectedReport.id } });
+                }}
+              >
+                Go to Report
+              </button>
             </div>
           </div>
         )}

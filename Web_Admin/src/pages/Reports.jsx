@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "../supabaseClient";
 import { format } from "date-fns";
+import { useLocation } from "react-router-dom"; // Add this hook
 
 // Auto-assign priority based on reports in same location
 // Auto-assign priority but keep admin's choice
@@ -77,6 +78,8 @@ export default function Reports() {
 
   // New state for sorting by date
   const [sortBy, setSortBy] = useState("latest"); // Default to latest first
+  
+  const location = useLocation(); // Add this line
 
   const departments = [
     "Public Works Department",
@@ -166,6 +169,18 @@ export default function Reports() {
     };
     markFeedbackAsRead();
   }, [selectedReport]);
+
+  // New useEffect to handle navigation from the Analytics page
+  useEffect(() => {
+    if (location.state?.reportId && reports.length > 0) {
+      const reportToSelect = reports.find(r => r.id === location.state.reportId);
+      if (reportToSelect) {
+        const index = reports.indexOf(reportToSelect);
+        handleSelectReport(reportToSelect, index);
+        window.history.replaceState({}, document.title); // Clear the state to prevent modal from reopening on refresh
+      }
+    }
+  }, [location.state, reports]);
 
   // Dashboard stats
   const totalReports = reports.length;
