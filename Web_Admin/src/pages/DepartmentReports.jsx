@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "../supabaseClient";
+import { Eye, Edit3, PlusCircle, X } from "lucide-react"; // ✅ lucide-react icons
 
 export default function DepartmentReports() {
   const [reports, setReports] = useState([]);
@@ -33,12 +34,7 @@ export default function DepartmentReports() {
     setLoading(true);
     const { data, error } = await supabase
       .from("reports")
-      .select(
-        `
-        *,
-        tasks(*)
-      `
-      )
+      .select(`*, tasks(*)`)
       .eq("assigned_to_dept", selectedDept);
 
     if (error) {
@@ -125,9 +121,12 @@ export default function DepartmentReports() {
       {/* KPI Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         {Object.entries(kpis).map(([status, count]) => (
-          <div key={status} className="bg-white p-4 rounded-xl shadow border border-[#FFE4B5]">
+          <div
+            key={status}
+            className="bg-white p-4 rounded-xl shadow border border-[#FFE4B5] hover:shadow-lg transition"
+          >
             <p className="text-lg font-semibold">{status}</p>
-            <p className="text-2xl font-bold">{count}</p>
+            <p className="text-2xl font-bold text-[#FF8C00]">{count}</p>
           </div>
         ))}
       </div>
@@ -140,43 +139,42 @@ export default function DepartmentReports() {
       )}
 
       {/* Department Selector + Filters in one line */}
-<div className="flex items-center gap-4 mb-6">
-  <select
-    value={selectedDept}
-    onChange={(e) => setSelectedDept(e.target.value)}
-    className="border border-[#FFE4B5] rounded-lg p-2 bg-white shadow-sm"
-  >
-    {departments.map((dept) => (
-      <option key={dept} value={dept}>
-        {dept}
-      </option>
-    ))}
-  </select>
+      <div className="flex items-center gap-4 mb-6">
+        <select
+          value={selectedDept}
+          onChange={(e) => setSelectedDept(e.target.value)}
+          className="border border-[#FFE4B5] rounded-lg p-2 bg-white shadow-sm"
+        >
+          {departments.map((dept) => (
+            <option key={dept} value={dept}>
+              {dept}
+            </option>
+          ))}
+        </select>
 
-  <select
-    value={filters.priority}
-    onChange={(e) => setFilters({ ...filters, priority: e.target.value })}
-    className="border border-[#FFE4B5] rounded-lg p-2 bg-white shadow-sm"
-  >
-    <option value="">All Priorities</option>
-    <option value="High">High</option>
-    <option value="Medium">Medium</option>
-    <option value="Low">Low</option>
-  </select>
+        <select
+          value={filters.priority}
+          onChange={(e) => setFilters({ ...filters, priority: e.target.value })}
+          className="border border-[#FFE4B5] rounded-lg p-2 bg-white shadow-sm"
+        >
+          <option value="">All Priorities</option>
+          <option value="High">High</option>
+          <option value="Medium">Medium</option>
+          <option value="Low">Low</option>
+        </select>
 
-  <select
-    value={filters.status}
-    onChange={(e) => setFilters({ ...filters, status: e.target.value })}
-    className="border border-[#FFE4B5] rounded-lg p-2 bg-white shadow-sm"
-  >
-    <option value="">All Status</option>
-    <option value="Pending">Pending</option>
-    <option value="In Progress">In Progress</option>
-    <option value="Resolved">Resolved</option>
-    <option value="Rejected">Rejected</option>
-  </select>
-</div>
-
+        <select
+          value={filters.status}
+          onChange={(e) => setFilters({ ...filters, status: e.target.value })}
+          className="border border-[#FFE4B5] rounded-lg p-2 bg-white shadow-sm"
+        >
+          <option value="">All Status</option>
+          <option value="Pending">Pending</option>
+          <option value="In Progress">In Progress</option>
+          <option value="Resolved">Resolved</option>
+          <option value="Rejected">Rejected</option>
+        </select>
+      </div>
 
       {/* Reports Table */}
       {loading ? (
@@ -210,18 +208,15 @@ export default function DepartmentReports() {
                     <td className="p-3">{report.status}</td>
                     <td className="p-3 flex items-center gap-2">
                       {task ? (
-                        <>
-                          {/* <span>{task.task_description.slice(0, 20)}...</span> */}
-                          <button
-                            onClick={() => {
-                              setViewTaskText(task.task_description);
-                              setViewTaskModal(true);
-                            }}
-                            className="bg-[#FFA500] hover:bg-[#a57420] text-white px-2 py-1 rounded-md text-sm"
-                          >
-                            👁
-                          </button>
-                        </>
+                        <button
+                          onClick={() => {
+                            setViewTaskText(task.task_description);
+                            setViewTaskModal(true);
+                          }}
+                          className="flex items-center gap-1 bg-[#FFA500] hover:bg-[#e69500] text-white px-3 py-1 rounded-lg shadow transition"
+                        >
+                          <Eye size={16} /> View
+                        </button>
                       ) : (
                         "—"
                       )}
@@ -234,8 +229,9 @@ export default function DepartmentReports() {
                           setEditMode(!!task);
                           setShowModal(true);
                         }}
-                        className="bg-red-400 hover:bg-red-600 text-white px-4 py-1 rounded-xl shadow"
+                        className="flex items-center gap-1 bg-[#ea3313] hover:bg-[#971400] text-white px-3 py-1 rounded-lg shadow transition"
                       >
+                        {task ? <Edit3 size={16} /> : <PlusCircle size={16} />}
                         {task ? "Edit Task" : "Assign Task"}
                       </button>
                     </td>
@@ -270,14 +266,15 @@ export default function DepartmentReports() {
                   setTaskDescription("");
                   setEditMode(false);
                 }}
-                className="px-4 py-2 rounded-lg bg-gray-300 hover:bg-gray-400"
+                className="flex items-center gap-1 px-4 py-2 rounded-lg bg-gray-300 hover:bg-gray-400"
               >
-                Cancel
+                <X size={16} /> Cancel
               </button>
               <button
                 onClick={handleSaveTask}
-                className="px-4 py-2 rounded-lg bg-green-500 text-white hover:bg-green-600"
+                className="flex items-center gap-1 px-4 py-2 rounded-lg bg-green-500 text-white hover:bg-green-600"
               >
+                {editMode ? <Edit3 size={16} /> : <PlusCircle size={16} />}
                 {editMode ? "Update" : "Assign"}
               </button>
             </div>
@@ -294,9 +291,9 @@ export default function DepartmentReports() {
             <div className="flex justify-end">
               <button
                 onClick={() => setViewTaskModal(false)}
-                className="px-4 py-2 rounded-lg bg-[#eb7f61] text-white hover:bg-[#cd3b12]"
+                className="flex items-center gap-1 px-4 py-2 rounded-lg bg-[#FF6347] text-white hover:bg-[#e5533d]"
               >
-                Close
+                <X size={16} /> Close
               </button>
             </div>
           </div>
