@@ -20,36 +20,58 @@ const ProfileScreen = () => {
   const [user, setUser] = useState<{ name: string; email: string } | null>(null);
   const router = useRouter();
 
+  // +++ ADD STATE FOR DYNAMIC STATS +++
+  const [issuesReported, setIssuesReported] = useState(0);
+  const [issuesResolved, setIssuesResolved] = useState(0);
+
   // ✅ Fetch user info (name + email)
   useEffect(() => {
-    const fetchUser = async () => {
+    const fetchUserDataAndStats = async () => {
       try {
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
+        const { data: { user } } = await supabase.auth.getUser();
 
         if (user) {
-          const { data, error } = await supabase
-            .from("profiles")
-            .select("name, email")
-            .eq("id", user.id)
-            .single();
+          // --- Fetch Profile Name and Report Stats Concurrently ---
+          const [profileResponse, reportedResponse, resolvedResponse] = await Promise.all([
+            // 1. Fetch user's name from profiles table
+            supabase.from("profiles").select("name").eq("id", user.id).single(),
 
-          if (error) {
-            console.error("Error fetching profile:", error.message);
+            // 2. Fetch the count of all reports by the user
+            supabase.from("reports")
+              .select('*', { count: 'exact', head: true })
+              .eq("user_id", user.id),
+
+            // 3. Fetch the count of 'resolved' reports by the user
+            supabase.from("reports")
+              .select('*', { count: 'exact', head: true })
+              .eq("user_id", user.id)
+              .eq("status", "Resolved")
+          ]);
+
+          // --- Process Profile Response ---
+          if (profileResponse.error) {
+            console.error("Error fetching profile:", profileResponse.error.message);
           } else {
             setUser({
-              name: data?.name || "Unknown",
-              email: data?.email || "No email",
+              name: profileResponse.data?.name || "Unknown",
+              email: user.email || "No email", // Get email directly from auth user
             });
           }
+
+          // --- Process Stats Responses ---
+          if (reportedResponse.error) console.error("Error fetching reported count:", reportedResponse.error.message);
+          else setIssuesReported(reportedResponse.count || 0);
+
+          if (resolvedResponse.error) console.error("Error fetching resolved count:", resolvedResponse.error.message);
+          else setIssuesResolved(resolvedResponse.count || 0);
+
         }
       } catch (err) {
-        console.error("Unexpected error fetching user:", err);
+        console.error("Unexpected error fetching data:", err);
       }
     };
 
-    fetchUser();
+    fetchUserDataAndStats();
   }, []);
 
   // Light & Dark themes
@@ -111,9 +133,16 @@ const ProfileScreen = () => {
               style={[styles.avatar, { backgroundColor: COLORS.secondary }]}
             />
           </View>
-          <Text style={[styles.userName, { color: COLORS.textHeader }]}>
+          <Text
+            style={[
+              styles.userName,
+              { color: COLORS.textHeader },
+              !user?.name && { fontWeight: "normal" } // remove bold for Loading...
+            ]}
+          >
             {user?.name || "Loading..."}
           </Text>
+
           <Text style={[styles.userEmail, { color: COLORS.textSub }]}>
             {user?.email || ""}
           </Text>
@@ -147,7 +176,7 @@ const ProfileScreen = () => {
               />
             </View>
             <Text style={[styles.statNumber, { color: COLORS.textHeader }]}>
-              24
+              {issuesReported}
             </Text>
             <Text style={[styles.statLabel, { color: COLORS.textSub }]}>
               Issues Reported
@@ -155,20 +184,17 @@ const ProfileScreen = () => {
           </View>
 
           <View style={[styles.statCard, { backgroundColor: COLORS.card }]}>
-            <View
-              style={[
-                styles.statIconContainer,
-                { backgroundColor: `rgba(50, 205, 50, 0.2)` },
-              ]}
-            >
+            <View style={[styles.statIconContainer, { backgroundColor: isDarkMode ? `rgba(46, 204, 113, 0.2)` : `rgba(50, 205, 50, 0.2)` }]}>
+
               <MaterialIcons
                 name="check-circle"
                 size={24}
                 color={COLORS.resolved}
               />
+
             </View>
             <Text style={[styles.statNumber, { color: COLORS.textHeader }]}>
-              18
+              {issuesResolved}
             </Text>
             <Text style={[styles.statLabel, { color: COLORS.textSub }]}>
               Issues Resolved
@@ -176,14 +202,11 @@ const ProfileScreen = () => {
           </View>
 
           <View style={[styles.statCard, { backgroundColor: COLORS.card }]}>
-            <View
-              style={[
-                styles.statIconContainer,
-                { backgroundColor: `rgba(255, 165, 0, 0.2)` },
-              ]}
-            >
+            <View style={[styles.statIconContainer, { backgroundColor: isDarkMode ? `rgba(255, 165, 0, 0.2)` : `rgba(255, 165, 0, 0.2)` }]}>
+
               <MaterialIcons name="stars" size={24} color={COLORS.primary} />
             </View>
+
             <Text style={[styles.statNumber, { color: COLORS.textHeader }]}>
               12
             </Text>
