@@ -219,7 +219,7 @@ export default function DepartmentReports() {
                             }}
                             className="bg-[#FFA500] hover:bg-[#a57420] text-white px-2 py-1 rounded-md text-sm"
                           >
-                            i
+                            👁
                           </button>
                         </>
                       ) : (
@@ -234,7 +234,7 @@ export default function DepartmentReports() {
                           setEditMode(!!task);
                           setShowModal(true);
                         }}
-                        className="bg-green-500 hover:bg-green-600 text-white px-4 py-1 rounded-xl shadow"
+                        className="bg-red-400 hover:bg-red-600 text-white px-4 py-1 rounded-xl shadow"
                       >
                         {task ? "Edit Task" : "Assign Task"}
                       </button>
