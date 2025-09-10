@@ -20,6 +20,8 @@ import * as Location from 'expo-location';
 import * as FileSystem from "expo-file-system";
 import { supabase } from '../../supabaseClient';
 
+import LocationPickerModal from './LocationPickerModal';
+
 const { width } = Dimensions.get('window');
 
 interface ReportModalProps {
@@ -33,10 +35,16 @@ const ReportModal: React.FC<ReportModalProps> = ({ visible, onClose, onSubmit })
   const [description, setDescription] = useState('');
   const [urgency, setUrgency] = useState<'low' | 'medium' | 'high'>('medium');
   const [selectedImages, setSelectedImages] = useState<string[]>([]);
-  const [location, setLocation] = useState('');
+  
   const [isAutoLocation, setIsAutoLocation] = useState(true);
   const [isLocating, setIsLocating] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const [isMapPickerVisible, setMapPickerVisible] = useState(false);
+
+  const [location, setLocation] = useState('');
+  const [latitude, setLatitude] = useState<number | null>(null);
+  const [longitude, setLongitude] = useState<number | null>(null);
 
   /** Image Picker */
   const pickImages = async () => {
@@ -72,11 +80,16 @@ const ReportModal: React.FC<ReportModalProps> = ({ visible, onClose, onSubmit })
         return;
       }
       const loc = await Location.getCurrentPositionAsync({});
-      const { latitude, longitude } = loc.coords;
-      const [addr] = await Location.reverseGeocodeAsync({ latitude, longitude });
+      const { latitude: lat, longitude: lng } = loc.coords;
+      const [addr] = await Location.reverseGeocodeAsync({ latitude: lat, longitude: lng });
 
       const detectedAddress = `${addr.name ? addr.name + ', ' : ''}${addr.street ? addr.street + ', ' : ''}${addr.city ? addr.city + ', ' : ''}${addr.region ? addr.region + ', ' : ''}${addr.postalCode ? addr.postalCode + ', ' : ''}${addr.country || ''}`;
       setLocation(detectedAddress);
+
+
+      setLatitude(lat);     // Store latitude
+      setLongitude(lng);
+
       setIsAutoLocation(true);
     } catch (err) {
       console.error(err);
@@ -128,7 +141,9 @@ const ReportModal: React.FC<ReportModalProps> = ({ visible, onClose, onSubmit })
           {
             issue_type: issueType.trim(),
             description: description.trim(),
-            location,
+            location, // The address string
+          latitude,   // The new latitude field
+          longitude,  // The new longitude field
             priority: urgency,
             reporter_name: reporterName,
             reporter_email: user.email,
@@ -197,6 +212,8 @@ const ReportModal: React.FC<ReportModalProps> = ({ visible, onClose, onSubmit })
     setUrgency('medium');
     setSelectedImages([]);
     setLocation('');
+    setLatitude(null);
+    setLongitude(null);
     setIsAutoLocation(true);
   };
 
@@ -274,23 +291,38 @@ const ReportModal: React.FC<ReportModalProps> = ({ visible, onClose, onSubmit })
 
             <Text style={styles.inputLabel}>Location</Text>
             <View style={styles.locationRow}>
-              {isLocating ? (
-                <Text style={styles.loadingText}>Locating...</Text>
-              ) : (
-                <TextInput
-                  style={[styles.input, { flex: 1 }]}
-                  placeholder="Enter location manually or auto-detect"
-                  value={location}
-                  onChangeText={(text) => {
-                    setLocation(text);
-                    setIsAutoLocation(false);
-                  }}
-                />
-              )}
-              <TouchableOpacity style={styles.locationButton} onPress={autoDetectLocation} disabled={isLocating}>
-                <Text style={styles.locationButtonText}>📍</Text>
-              </TouchableOpacity>
-            </View>
+            {isLocating ? (
+              <Text style={styles.loadingText}>Locating...</Text>
+            ) : (
+              <TextInput
+                style={[styles.input, { flex: 1 }]}
+                placeholder="Auto-detect or select on map"
+                value={location}
+                onChangeText={(text) => {
+                  setLocation(text);
+                  setIsAutoLocation(false);
+                  setLatitude(null); // Clear coords if manually typing
+                  setLongitude(null);
+                }}
+              />
+            )}
+            <TouchableOpacity style={styles.locationButton} onPress={autoDetectLocation} disabled={isLocating}>
+              <Text style={styles.locationButtonText}>📍</Text>
+            </TouchableOpacity>
+          </View>
+          {/* New "Select on Map" Button */}
+          <TouchableOpacity style={styles.mapButton} onPress={() => setMapPickerVisible(true)}>
+            <Text style={styles.mapButtonText}>Select on Map</Text>
+            <LocationPickerModal
+        visible={isMapPickerVisible}
+        onClose={() => setMapPickerVisible(false)}
+        onLocationSelect={({ address, lat, lng }) => {
+          setLocation(address);
+          setLatitude(lat);
+          setLongitude(lng);
+        }}
+      />
+          </TouchableOpacity>
 
             <View style={styles.modalButtonRow}>
               <TouchableOpacity style={styles.cancelButton} onPress={handleClose}>
@@ -304,6 +336,7 @@ const ReportModal: React.FC<ReportModalProps> = ({ visible, onClose, onSubmit })
         </View>
       </KeyboardAvoidingView>
     </Modal>
+    
   );
 };
 
@@ -336,6 +369,20 @@ const styles = StyleSheet.create({
   loadingText: { fontSize: 16, color: '#555', fontStyle: 'italic', padding: 12, flex: 1 },
   dropdownContainer: { borderWidth: 1, borderColor: "#E0E0E0", borderRadius: 8, height: 50, backgroundColor: "#F9F9F9", overflow: "hidden", marginTop: 8 },
   dropdown: { height: 50, paddingHorizontal: 10, fontSize: 15, color: "#333" },
+  mapButton: {
+    backgroundColor: '#FFF',
+    borderColor: '#F39C12',
+    borderWidth: 1,
+    borderRadius: 8,
+    padding: 12,
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  mapButtonText: {
+    color: '#F39C12',
+    fontSize: 16,
+    fontWeight: '600',
+  },
 });
 
 export default ReportModal;
