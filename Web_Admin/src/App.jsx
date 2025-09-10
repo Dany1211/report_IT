@@ -11,6 +11,7 @@ import Settings from "./pages/Settings";
 import LoginPage from "./pages/LoginPage";
 import Reports from "./pages/Reports";
 import Exporting from "./pages/Exporting";
+import DepartmentReports from "./pages/DepartmentReports";
 
 export default function App() {
   return (
@@ -33,6 +34,7 @@ export default function App() {
             <Route path="/settings" element={<Settings />} />
             <Route path="/reports" element={<Reports />} />
             <Route path="/exporting" element={<Exporting />} />
+            <Route path="/department-reports" element={<DepartmentReports />} />
           </Route>
         </Routes>
       </BrowserRouter>
