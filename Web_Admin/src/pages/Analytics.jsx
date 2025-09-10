@@ -565,10 +565,10 @@
 // }
 
 import { useState, useEffect } from "react";
-import { supabase } from "../supabaseClient"; // adjust path if needed
+import { supabase } from "../supabaseClient";
 import {
-  BarChart, Bar, PieChart, Pie, Cell,
-  CartesianGrid, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer
+  BarChart, Bar,
+  CartesianGrid, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell
 } from "recharts";
 import { format } from "date-fns";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
@@ -583,19 +583,17 @@ L.Icon.Default.mergeOptions({
   shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
 });
 
-// Your Geoapify API Key
-const GEOAPIFY_API_KEY = "4aec0d60f3684c7ea113a00db8f564b5";
+const GEOAPIFY_API_KEY = import.meta.env.VITE_GEOAPIFY_API_KEY;
 
 export default function Analytics() {
   const [reports, setReports] = useState([]);
   const [geocodedReports, setGeocodedReports] = useState([]);
-  const [pageLoading, setPageLoading] = useState(true); // For KPIs & charts
-  const [mapLoading, setMapLoading] = useState(true);   // For map section
+  const [pageLoading, setPageLoading] = useState(true);
+  const [mapLoading, setMapLoading] = useState(true);
   const [timeGrouping, setTimeGrouping] = useState("Monthly");
 
   useEffect(() => {
     const fetchReports = async () => {
-      // 1. Fetch reports (fast) → update KPIs & charts
       const { data: initialReports, error } = await supabase.from("reports").select("*");
       if (error) {
         console.error("Error fetching reports:", error);
@@ -606,10 +604,8 @@ export default function Analytics() {
       setReports(initialReports || []);
       setPageLoading(false);
 
-      // 2. Background geocoding for map only
       const geocodingPromises = (initialReports || []).map(async (report) => {
         if (!report.location || !GEOAPIFY_API_KEY) return report;
-
         try {
           const encodedLocation = encodeURIComponent(report.location);
           const url = `https://api.geoapify.com/v1/geocode/search?text=${encodedLocation}&apiKey=${GEOAPIFY_API_KEY}`;
@@ -633,27 +629,21 @@ export default function Analytics() {
     fetchReports();
   }, []);
 
-  // ---------- KPI Overview ----------
+  // KPI Data
   const totalIssues = reports.length;
   const resolvedCount = reports.filter(r => r.status === "Resolved").length;
   const pendingCount = reports.filter(r => r.status === "Pending").length;
-  const avgResolutionTime = 4.5; // placeholder
+  const inProgressCount = reports.filter(r => r.status === "In Progress").length;
 
-  // ---------- Monthly Trend ----------
+  // Trend Chart
   const issuesTrend = (() => {
     const map = {};
     reports.forEach(r => {
       const date = new Date(r.created_at);
       let key;
-
-      if (timeGrouping === "Daily") {
-        key = format(date, "dd MMM");
-      } else if (timeGrouping === "Weekly") {
-        const weekStart = format(date, "yyyy-'W'ww");
-        key = `Week ${weekStart}`;
-      } else {
-        key = format(date, "MMM yyyy");
-      }
+      if (timeGrouping === "Daily") key = format(date, "dd MMM");
+      else if (timeGrouping === "Weekly") key = `Week ${format(date, "yyyy-'W'ww")}`;
+      else key = format(date, "MMM yyyy");
 
       if (!map[key]) map[key] = { period: key, reported: 0, resolved: 0 };
       map[key].reported++;
@@ -662,186 +652,167 @@ export default function Analytics() {
     return Object.values(map);
   })();
 
-  // ---------- Category Breakdown ----------
+  // Breakdown by Category
   const categoryMap = {};
   reports.forEach(r => {
     categoryMap[r.issue_type] = (categoryMap[r.issue_type] || 0) + 1;
   });
   const categoryData = Object.entries(categoryMap).map(([name, value]) => ({ name, value }));
 
-  // ---------- Status Breakdown ----------
-  const statusMap = {};
-  reports.forEach(r => {
-    statusMap[r.status] = (statusMap[r.status] || 0) + 1;
-  });
-  const statusData = Object.entries(statusMap).map(([name, value]) => ({ name, value }));
-
-  // ---------- Priority Breakdown ----------
-  const priorityMap = {};
-  reports.forEach(r => {
-    const p = r.priority || "Low";
-    priorityMap[p] = (priorityMap[p] || 0) + 1;
-  });
-  const priorityData = Object.entries(priorityMap).map(([name, value]) => ({ name, value }));
-
-  // Geo Reports for Map
+  // Geo Reports
   const geoReports = geocodedReports.filter(r => r.lat && r.lng);
+  const DEFAULT_CENTER = [19.7515, 75.7139]; // Maharashtra
+  const DEFAULT_ZOOM = 6;
+  const avgLat = geoReports.length > 0 ? geoReports.reduce((s, r) => s + r.lat, 0) / geoReports.length : DEFAULT_CENTER[0];
+  const avgLng = geoReports.length > 0 ? geoReports.reduce((s, r) => s + r.lng, 0) / geoReports.length : DEFAULT_CENTER[1];
 
-  // Default center coordinates for Maharashtra, India
-  const DEFAULT_MAHARASHTRA_CENTER = [19.7515, 75.7139];
-  const DEFAULT_MAHARASHTRA_ZOOM = 6;
-
-  // Calculate average latitude and longitude for centering the map based on reports
-  const avgLat =
-    geoReports.length > 0
-      ? geoReports.reduce((s, r) => s + r.lat, 0) / geoReports.length
-      : DEFAULT_MAHARASHTRA_CENTER[0];
-  const avgLng =
-    geoReports.length > 0
-      ? geoReports.reduce((s, r) => s + r.lng, 0) / geoReports.length
-      : DEFAULT_MAHARASHTRA_CENTER[1];
-
-  // Theme colors
   const COLORS = ["#FFA500", "#32CD32", "#FF4500", "#FFB347"];
-  const statusColors = {
-    Pending: "#FF0000",
-    "In Progress": "#FFA500",
-    Resolved: "#32CD32",
-  };
+
+  // High Priority Issues
+  const highPriorityReports = reports.filter(r => r.priority === "High" || r.priority === "Urgent");
 
   return (
-    <div className="min-h-screen p-6 bg-gradient-to-br from-[#FFF9F0] to-[#FFF1C6]">
-      
-      {/* KPI Overview */}
-      {pageLoading ? (
-        <p className="p-6 text-[#555555]">Loading reports...</p>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
-          <div className="bg-white shadow-lg rounded-xl p-4 text-center border border-[#FFE4B5]">
-            <h3 className="text-sm text-[#555555] mb-2">Total Issues</h3>
-            <p className="text-2xl font-bold text-[#333333]">{totalIssues}</p>
-          </div>
-          <div className="bg-white shadow-lg rounded-xl p-4 text-center border border-[#FFE4B5]">
-            <h3 className="text-sm text-[#555555] mb-2">Resolved</h3>
-            <p className="text-2xl font-bold text-[#32CD32]">{resolvedCount}</p>
-          </div>
-          <div className="bg-white shadow-lg rounded-xl p-4 text-center border border-[#FFE4B5]">
-            <h3 className="text-sm text-[#555555] mb-2">Pending</h3>
-            <p className="text-2xl font-bold text-[#FFB347]">{pendingCount}</p>
-          </div>
-          <div className="bg-white shadow-lg rounded-xl p-4 text-center border border-[#FFE4B5]">
-            <h3 className="text-sm text-[#555555] mb-2">Avg. Resolution Time</h3>
-            <p className="text-2xl font-bold text-[#FFA500]">{avgResolutionTime}h</p>
-          </div>
-        </div>
-      )}
+    <div className="min-h-screen flex bg-gradient-to-br from-[#FFF9F0] to-[#FFF1C6]">
+      <main className="flex-1 p-6">
 
-      {/* Trend Chart */}
-      {!pageLoading && (
-        <div className="bg-white shadow-lg rounded-xl p-6 border border-[#FFE4B5] mb-10">
-          <div className="mb-4 flex items-center gap-4">
-            <h2 className="text-lg font-semibold text-[#333333]">Reported vs Resolved</h2>
-            <select
-              value={timeGrouping}
-              onChange={(e) => setTimeGrouping(e.target.value)}
-              className="border border-[#FFE4B5] rounded-lg p-1 px-2 bg-white"
-            >
-              <option value="Daily">Daily</option>
-              <option value="Weekly">Weekly</option>
-              <option value="Monthly">Monthly</option>
-            </select>
-          </div>
-
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={issuesTrend} barSize={40}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#FFE4B5" />
-              <XAxis dataKey="period" stroke="#555555" />
-              <YAxis stroke="#555555" />
-              <Tooltip contentStyle={{ backgroundColor: "#FFF9F0", borderColor: "#FFE4B5" }} />
-              <Legend />
-              <Bar dataKey="reported" fill="#FFA500" radius={[6, 6, 0, 0]} />
-              <Bar dataKey="resolved" fill="#32CD32" radius={[6, 6, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-      )}
-
-      {/* Live Issues Map */}
-      <div className="bg-white shadow-lg rounded-xl p-6 border border-[#FFE4B5] mb-10">
-        <h2 className="text-lg font-semibold text-[#333333] mb-4">Live Issues Map</h2>
-        {mapLoading ? (
-          <p className="text-[#555555]">Loading map...</p>
+        {/* KPIs */}
+        {pageLoading ? (
+          <p className="p-6 text-[#555555]">Loading reports...</p>
         ) : (
-          <MapContainer 
-            // Use default Maharashtra coordinates if no geo reports are found
-            center={geoReports.length > 0 ? [avgLat, avgLng] : DEFAULT_MAHARASHTRA_CENTER} 
-            zoom={geoReports.length > 0 ? 6 : DEFAULT_MAHARASHTRA_ZOOM} 
-            className="h-[400px] w-full rounded-lg z-0"
-          >
-            <TileLayer
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-              attribution='&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors'
-            />
-            {geoReports.map((r, idx) => (
-              <Marker key={r.id || idx} position={[r.lat, r.lng]}>
-                <Popup>
-                  <b>{r.issue_type}</b> <br />
-                  Status: {r.status} <br />
-                  Location: {r.location} <br />
-                  Reported: {format(new Date(r.created_at), "PP")}
-                </Popup>
-              </Marker>
-            ))}
-          </MapContainer>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+            <div className="bg-white shadow-lg rounded-xl p-4 text-center border border-[#FFE4B5]">
+              <h3 className="text-sm text-[#555555] mb-2">Total Issues</h3>
+              <p className="text-2xl font-bold text-[#333333]">{totalIssues}</p>
+            </div>
+            <div className="bg-white shadow-lg rounded-xl p-4 text-center border border-[#FFE4B5]">
+              <h3 className="text-sm text-[#555555] mb-2">Pending</h3>
+              <p className="text-2xl font-bold text-[#FFB347]">{pendingCount}</p>
+            </div>
+            <div className="bg-white shadow-lg rounded-xl p-4 text-center border border-[#FFE4B5]">
+              <h3 className="text-sm text-[#555555] mb-2">Resolved</h3>
+              <p className="text-2xl font-bold text-[#32CD32]">{resolvedCount}</p>
+            </div>
+            <div className="bg-white shadow-lg rounded-xl p-4 text-center border border-[#FFE4B5]">
+              <h3 className="text-sm text-[#555555] mb-2">In Progress</h3>
+              <p className="text-2xl font-bold text-[#FFA500]">{inProgressCount}</p>
+            </div>
+          </div>
         )}
-      </div>
 
-      {/* Breakdown Charts */}
-      {!pageLoading && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-10">
-          <div className="bg-white shadow-lg rounded-xl p-6 border border-[#FFE4B5]">
-            <h2 className="text-lg font-semibold text-[#333333] mb-4">Issues by Category</h2>
-            <ResponsiveContainer width="100%" height={250}>
-              <PieChart>
-                <Pie data={categoryData} dataKey="value" cx="50%" cy="50%" outerRadius={80} label>
-                  {categoryData.map((entry, index) => (
-                    <Cell key={index} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip contentStyle={{ backgroundColor: "#FFF9F0", borderColor: "#FFE4B5" }} />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
+        {/* BAR GRAPH + MAP */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-10">
+          {/* Bar Graph */}
+          {!pageLoading && (
+            <div className="bg-white shadow-lg rounded-xl p-6 border border-[#FFE4B5]">
+              <div className="mb-4 flex items-center gap-4">
+                <h2 className="text-lg font-semibold text-[#333333]">Reported vs Resolved</h2>
+                <select
+                  value={timeGrouping}
+                  onChange={(e) => setTimeGrouping(e.target.value)}
+                  className="border border-[#FFE4B5] rounded-lg p-1 px-2 bg-white"
+                >
+                  <option value="Daily">Daily</option>
+                  <option value="Weekly">Weekly</option>
+                  <option value="Monthly">Monthly</option>
+                </select>
+              </div>
 
-          <div className="bg-white shadow-lg rounded-xl p-6 border border-[#FFE4B5]">
-            <h2 className="text-lg font-semibold text-[#333333] mb-4">Issues by Status</h2>
-            <ResponsiveContainer width="100%" height={250}>
-              <PieChart>
-                <Pie data={statusData} dataKey="value" cx="50%" cy="50%" outerRadius={80} label>
-                  {statusData.map((entry, index) => (
-                    <Cell key={index} fill={statusColors[entry.name] || COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip contentStyle={{ backgroundColor: "#FFF9F0", borderColor: "#FFE4B5" }} />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={issuesTrend} barSize={40}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#FFE4B5" />
+                  <XAxis dataKey="period" stroke="#555555" />
+                  <YAxis stroke="#555555" />
+                  <Tooltip contentStyle={{ backgroundColor: "#FFF9F0", borderColor: "#FFE4B5" }} />
+                  <Legend />
+                  <Bar dataKey="reported" fill="#FFA500" radius={[6, 6, 0, 0]} />
+                  <Bar dataKey="resolved" fill="#32CD32" radius={[6, 6, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          )}
 
+          {/* Map */}
           <div className="bg-white shadow-lg rounded-xl p-6 border border-[#FFE4B5]">
-            <h2 className="text-lg font-semibold text-[#333333] mb-4">Issues by Priority</h2>
-            <ResponsiveContainer width="100%" height={250}>
-              <PieChart>
-                <Pie data={priorityData} dataKey="value" cx="50%" cy="50%" outerRadius={80} label>
-                  {priorityData.map((entry, index) => (
-                    <Cell key={index} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip contentStyle={{ backgroundColor: "#FFF9F0", borderColor: "#FFE4B5" }} />
-              </PieChart>
-            </ResponsiveContainer>
+            <h2 className="text-lg font-semibold text-[#333333] mb-4">Live Issues Map</h2>
+            {mapLoading ? (
+              <p className="text-[#555555]">Loading map...</p>
+            ) : (
+              <MapContainer
+                center={geoReports.length > 0 ? [avgLat, avgLng] : DEFAULT_CENTER}
+                zoom={geoReports.length > 0 ? 6 : DEFAULT_ZOOM}
+                className="h-[350px] w-full rounded-lg z-0"
+              >
+                <TileLayer
+                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                  attribution='&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors'
+                />
+                {geoReports.map((r, idx) => (
+                  <Marker key={r.id || idx} position={[r.lat, r.lng]}>
+                    <Popup>
+                      <b>{r.issue_type}</b> <br />
+                      Status: {r.status} <br />
+                      Priority: {r.priority} <br />
+                      Location: {r.location} <br />
+                      Reported: {format(new Date(r.created_at), "PP")}
+                    </Popup>
+                  </Marker>
+                ))}
+              </MapContainer>
+            )}
           </div>
         </div>
-      )}
+
+        {/* CATEGORY + HIGH PRIORITY REPORTS */}
+        {!pageLoading && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-10">
+            {/* Category */}
+            <div className="bg-white shadow-lg rounded-xl p-6 border border-[#FFE4B5]">
+              <h2 className="text-lg font-semibold text-[#333333] mb-4">Issues by Category</h2>
+              <ResponsiveContainer width="100%" height={250}>
+                <PieChart>
+                  <Pie data={categoryData} dataKey="value" cx="50%" cy="50%" outerRadius={80} label>
+                    {categoryData.map((entry, index) => (
+                      <Cell key={index} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip contentStyle={{ backgroundColor: "#FFF9F0", borderColor: "#FFE4B5" }} />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+
+            {/* High Priority Reports */}
+            <div className="bg-white shadow-lg rounded-xl p-6 border border-[#FFE4B5]">
+              <h2 className="text-lg font-semibold text-[#333333] mb-4">High Priority / Urgent Issues</h2>
+              {highPriorityReports.length === 0 ? (
+                <p className="text-[#777777]">No urgent issues at the moment 🎉</p>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm text-left border border-[#FFE4B5] rounded-lg">
+                    <thead className="bg-[#FFF9F0]">
+                      <tr>
+                        <th className="p-2 border border-[#FFE4B5]">Issue</th>
+                        <th className="p-2 border border-[#FFE4B5]">Location</th>
+                        <th className="p-2 border border-[#FFE4B5]">Status</th>
+                        <th className="p-2 border border-[#FFE4B5]">Reported On</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {highPriorityReports.map((r) => (
+                        <tr key={r.id}>
+                          <td className="p-2 border border-[#FFE4B5]">{r.issue_type}</td>
+                          <td className="p-2 border border-[#FFE4B5]">{r.location}</td>
+                          <td className="p-2 border border-[#FFE4B5]">{r.status}</td>
+                          <td className="p-2 border border-[#FFE4B5]">{format(new Date(r.created_at), "PP")}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </main>
     </div>
   );
 }
