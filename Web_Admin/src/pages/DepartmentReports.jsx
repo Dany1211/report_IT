@@ -139,44 +139,44 @@ export default function DepartmentReports() {
         </div>
       )}
 
-      {/* Department Selector */}
-      <select
-        value={selectedDept}
-        onChange={(e) => setSelectedDept(e.target.value)}
-        className="border border-[#FFE4B5] rounded-lg p-2 mb-4 bg-white shadow-sm"
-      >
-        {departments.map((dept) => (
-          <option key={dept} value={dept}>
-            {dept}
-          </option>
-        ))}
-      </select>
+      {/* Department Selector + Filters in one line */}
+<div className="flex items-center gap-4 mb-6">
+  <select
+    value={selectedDept}
+    onChange={(e) => setSelectedDept(e.target.value)}
+    className="border border-[#FFE4B5] rounded-lg p-2 bg-white shadow-sm"
+  >
+    {departments.map((dept) => (
+      <option key={dept} value={dept}>
+        {dept}
+      </option>
+    ))}
+  </select>
 
-      {/* Filters */}
-      <div className="flex gap-4 mb-6">
-        <select
-          value={filters.priority}
-          onChange={(e) => setFilters({ ...filters, priority: e.target.value })}
-          className="border border-[#FFE4B5] rounded-lg p-2 bg-white shadow-sm"
-        >
-          <option value="">All Priorities</option>
-          <option value="High">High</option>
-          <option value="Medium">Medium</option>
-          <option value="Low">Low</option>
-        </select>
+  <select
+    value={filters.priority}
+    onChange={(e) => setFilters({ ...filters, priority: e.target.value })}
+    className="border border-[#FFE4B5] rounded-lg p-2 bg-white shadow-sm"
+  >
+    <option value="">All Priorities</option>
+    <option value="High">High</option>
+    <option value="Medium">Medium</option>
+    <option value="Low">Low</option>
+  </select>
 
-        <select
-          value={filters.status}
-          onChange={(e) => setFilters({ ...filters, status: e.target.value })}
-          className="border border-[#FFE4B5] rounded-lg p-2 bg-white shadow-sm"
-        >
-          <option value="">All Status</option>
-          <option value="Pending">Pending</option>
-          <option value="In Progress">In Progress</option>
-          <option value="Resolved">Resolved</option>
-          <option value="Rejected">Rejected</option>
-        </select>
-      </div>
+  <select
+    value={filters.status}
+    onChange={(e) => setFilters({ ...filters, status: e.target.value })}
+    className="border border-[#FFE4B5] rounded-lg p-2 bg-white shadow-sm"
+  >
+    <option value="">All Status</option>
+    <option value="Pending">Pending</option>
+    <option value="In Progress">In Progress</option>
+    <option value="Resolved">Resolved</option>
+    <option value="Rejected">Rejected</option>
+  </select>
+</div>
+
 
       {/* Reports Table */}
       {loading ? (
