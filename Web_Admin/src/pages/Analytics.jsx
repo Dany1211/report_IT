@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { supabase } from "../supabaseClient";
+import { useNavigate } from "react-router-dom";
 import {
   BarChart, Bar,
   CartesianGrid, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell
@@ -25,6 +26,30 @@ export default function Analytics() {
   const [pageLoading, setPageLoading] = useState(true);
   const [mapLoading, setMapLoading] = useState(true);
   const [timeGrouping, setTimeGrouping] = useState("Monthly");
+  const [selectedReport, setSelectedReport] = useState(null); // <-- modal state
+  const affectedTableRef = useRef(null);
+
+  const navigate = useNavigate();
+
+  const highestAffectedReport = reports
+    .filter(r => r.affected_count > 0)
+    .reduce((max, r) => (r.affected_count > (max?.affected_count || 0) ? r : max), null);
+
+  const scrollToHighestAffected = () => {
+    if (!highestAffectedReport || !affectedTableRef.current) return;
+    const rows = affectedTableRef.current.querySelectorAll("tbody tr");
+    const rowIndex = Array.from(rows).findIndex(r => {
+      return parseInt(r.querySelector("td:nth-child(4)").textContent) === highestAffectedReport.affected_count &&
+        r.querySelector("td:nth-child(2)").textContent === highestAffectedReport.issue_type &&
+        r.querySelector("td:nth-child(3)").textContent === highestAffectedReport.location;
+    });
+
+    if (rowIndex === -1) return;
+    const row = rows[rowIndex];
+    row.scrollIntoView({ behavior: "smooth", block: "center" });
+    row.classList.add("bg-yellow-100");
+    setTimeout(() => row.classList.remove("bg-yellow-100"), 2000);
+  };
 
   useEffect(() => {
     const fetchReports = async () => {
@@ -101,9 +126,6 @@ export default function Analytics() {
   const avgLng = geoReports.length > 0 ? geoReports.reduce((s, r) => s + r.lng, 0) / geoReports.length : DEFAULT_CENTER[1];
 
   const COLORS = ["#FFA500", "#32CD32", "#FF4500", "#FFB347"];
-
-  // High Priority Issues
-  const highPriorityReports = reports.filter(r => r.priority === "High" || r.priority === "Urgent");
 
   return (
     <div className="min-h-screen flex bg-gradient-to-br from-[#FFF9F0] to-[#FFF1C6]">
@@ -214,35 +236,77 @@ export default function Analytics() {
               </ResponsiveContainer>
             </div>
 
-            {/* High Priority Reports */}
+            {/* Reports with Affected Count Table */}
             <div className="bg-white shadow-lg rounded-xl p-6 border border-[#FFE4B5]">
-              <h2 className="text-lg font-semibold text-[#333333] mb-4">High Priority / Urgent Issues</h2>
-              {highPriorityReports.length === 0 ? (
-                <p className="text-[#777777]">No urgent issues at the moment 🎉</p>
+              <h2 className="text-lg font-semibold text-[#333333] mb-4">
+                Reports with Affected Count
+              </h2>
+
+              {reports.filter(r => r.affected_count > 0).length === 0 ? (
+                <p className="text-[#777777]">No reports with affected count 🎉</p>
               ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm text-left border border-[#FFE4B5] rounded-lg">
-                    <thead className="bg-[#FFF9F0]">
+                <div
+                  ref={affectedTableRef}
+                  className="overflow-y-auto max-h-64 rounded-lg border border-[#FFE4B5]"
+                >
+                  <table className="w-full text-sm text-left">
+                    <thead className="bg-[#FFF9F0] sticky top-0 z-10">
                       <tr>
+                        <th className="p-2 border border-[#FFE4B5]">#</th>
                         <th className="p-2 border border-[#FFE4B5]">Issue</th>
                         <th className="p-2 border border-[#FFE4B5]">Location</th>
+                        <th className="p-2 border border-[#FFE4B5]">Affected Count</th>
                         <th className="p-2 border border-[#FFE4B5]">Status</th>
-                        <th className="p-2 border border-[#FFE4B5]">Reported On</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {highPriorityReports.map((r) => (
-                        <tr key={r.id}>
-                          <td className="p-2 border border-[#FFE4B5]">{r.issue_type}</td>
-                          <td className="p-2 border border-[#FFE4B5]">{r.location}</td>
-                          <td className="p-2 border border-[#FFE4B5]">{r.status}</td>
-                          <td className="p-2 border border-[#FFE4B5]">{format(new Date(r.created_at), "PP")}</td>
-                        </tr>
-                      ))}
+                      {reports
+                        .filter(r => r.affected_count > 0)
+                        .sort((a, b) => b.affected_count - a.affected_count)
+                        .map((r, idx) => (
+                          <tr
+                            key={r.id}
+                            className="hover:bg-[#FFF9F0] transition cursor-pointer"
+                            onClick={() => setSelectedReport(r)} // <-- open modal
+                          >
+                            <td className="p-2 border border-[#FFE4B5] font-bold">{idx + 1}</td>
+                            <td className="p-2 border border-[#FFE4B5]">{r.issue_type}</td>
+                            <td className="p-2 border border-[#FFE4B5]">{r.location}</td>
+                            <td className="p-2 border border-[#FFE4B5] font-bold text-[#FF4500]">
+                              {r.affected_count}
+                            </td>
+                            <td className="p-2 border border-[#FFE4B5]">{r.status}</td>
+                          </tr>
+                        ))}
                     </tbody>
                   </table>
                 </div>
               )}
+            </div>
+          </div>
+        )}
+
+        {/* Modal Popup for Report Details */}
+        {selectedReport && (
+          <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+            <div className="bg-white rounded-2xl shadow-xl p-6 w-[90%] max-w-lg border border-[#FFE4B5] relative">
+              <button
+                className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
+                onClick={() => setSelectedReport(null)}
+              >
+                ✕
+              </button>
+              <h2 className="text-xl font-bold text-[#333333] mb-4">
+                Report Details
+              </h2>
+              <div className="space-y-2 text-sm text-[#444]">
+                <p><b>Issue:</b> {selectedReport.issue_type}</p>
+                <p><b>Location:</b> {selectedReport.location}</p>
+                <p><b>Status:</b> {selectedReport.status}</p>
+                <p><b>Priority:</b> {selectedReport.priority || "N/A"}</p>
+                <p><b>Affected Count:</b> {selectedReport.affected_count}</p>
+                <p><b>Reported At:</b> {format(new Date(selectedReport.created_at), "PPpp")}</p>
+              </div>
             </div>
           </div>
         )}
