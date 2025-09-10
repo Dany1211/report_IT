@@ -7,6 +7,7 @@ import {
   Upload,
   Settings,
   Menu,
+  Users,   // Importing Users icon
 } from "lucide-react";
 
 export default function DashboardLayout() {
@@ -17,7 +18,7 @@ export default function DashboardLayout() {
     { name: "Analytics", to: "/analytics", icon: <BarChart2 size={20} /> },
     { name: "Reports", to: "/reports", icon: <FileText size={20} /> },
     { name: "Exporting", to: "/exporting", icon: <Upload size={20} /> },
-    { name: "Department Reports", to: "/department-reports", icon: <Upload size={20} /> },
+    { name: "Department Reports", to: "/department-reports", icon: <Users size={20} /> },  // Updated here
     { name: "Settings", to: "/settings", icon: <Settings size={20} /> },
   ];
 
