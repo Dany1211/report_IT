@@ -1,5 +1,5 @@
 // ReportModal.tsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Modal,
   View,
@@ -46,18 +46,36 @@ const ReportModal: React.FC<ReportModalProps> = ({ visible, onClose, onSubmit })
   const [latitude, setLatitude] = useState<number | null>(null);
   const [longitude, setLongitude] = useState<number | null>(null);
 
+  // Auto-detect location when modal becomes visible
+  useEffect(() => {
+    if (visible) {
+      autoDetectLocation();
+    }
+  }, [visible]);
+
   /** Image Picker */
   const pickImages = async () => {
+    // 1. Check if the user has already selected the maximum number of images.
+    if (selectedImages.length >= 5) {
+      Alert.alert('Maximum limit reached', 'You can only select up to 5 images.');
+      return;
+    }
+
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
       Alert.alert('Permission denied', 'Camera roll permission is required');
       return;
     }
 
+    // 2. Calculate how many more images can be selected.
+    const selectionLimit = 5 - selectedImages.length;
+
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       quality: 0.8,
       allowsMultipleSelection: true,
+      // 3. Pass the calculated limit to the picker.
+      selectionLimit: selectionLimit,
     });
 
     if (!result.canceled) {
@@ -86,8 +104,7 @@ const ReportModal: React.FC<ReportModalProps> = ({ visible, onClose, onSubmit })
       const detectedAddress = `${addr.name ? addr.name + ', ' : ''}${addr.street ? addr.street + ', ' : ''}${addr.city ? addr.city + ', ' : ''}${addr.region ? addr.region + ', ' : ''}${addr.postalCode ? addr.postalCode + ', ' : ''}${addr.country || ''}`;
       setLocation(detectedAddress);
 
-
-      setLatitude(lat);     // Store latitude
+      setLatitude(lat);
       setLongitude(lng);
 
       setIsAutoLocation(true);
@@ -141,9 +158,9 @@ const ReportModal: React.FC<ReportModalProps> = ({ visible, onClose, onSubmit })
           {
             issue_type: issueType.trim(),
             description: description.trim(),
-            location, // The address string
-          latitude,   // The new latitude field
-          longitude,  // The new longitude field
+            location,
+            latitude,
+            longitude,
             priority: urgency,
             reporter_name: reporterName,
             reporter_email: user.email,
@@ -229,6 +246,38 @@ const ReportModal: React.FC<ReportModalProps> = ({ visible, onClose, onSubmit })
           <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
             <Text style={styles.modalTitle}>Report New Issue</Text>
 
+            {/* Photos Section - Moved to Top */}
+            <Text style={styles.inputLabel}>Photos</Text>
+            {selectedImages.length === 0 ? (
+              <TouchableOpacity style={styles.photoUploadContainer} onPress={pickImages}>
+                <View style={styles.emptyPhotoContainer}>
+                  <Text style={styles.addPhotoIcon}>+</Text>
+                  <Text style={styles.addPhotoText}>Add Photos</Text>
+                </View>
+              </TouchableOpacity>
+            ) : (
+              <View style={styles.photoUploadContainer}>
+                <ScrollView 
+                  horizontal 
+                  style={styles.imagePreviewContainer} 
+                  contentContainerStyle={styles.imagePreviewContent}
+                  showsHorizontalScrollIndicator={false}
+                >
+                  {selectedImages.map((uri, index) => (
+                    <View key={index} style={styles.imagePreviewWrapper}>
+                      <Image source={{ uri }} style={styles.previewImage} />
+                      <TouchableOpacity style={styles.removeImageButton} onPress={() => removeImage(index)}>
+                        <Text style={styles.removeImageText}>×</Text>
+                      </TouchableOpacity>
+                    </View>
+                  ))}
+                  <TouchableOpacity style={styles.addMorePhotosButton} onPress={pickImages}>
+                    <Text style={styles.addMorePhotosIcon}>+</Text>
+                  </TouchableOpacity>
+                </ScrollView>
+              </View>
+            )}
+
             <Text style={styles.inputLabel}>Title *</Text>
             <View style={styles.dropdownContainer}>
               <Picker selectedValue={issueType} onValueChange={setIssueType} style={styles.dropdown}>
@@ -271,58 +320,42 @@ const ReportModal: React.FC<ReportModalProps> = ({ visible, onClose, onSubmit })
               </TouchableOpacity>
             </View>
 
-            <Text style={styles.inputLabel}>Photos</Text>
-            <TouchableOpacity style={styles.photoButton} onPress={pickImages}>
-              <Text style={styles.photoButtonText}>Add Photos</Text>
-            </TouchableOpacity>
-
-            {selectedImages.length > 0 && (
-              <ScrollView horizontal style={styles.imagePreviewContainer}>
-                {selectedImages.map((uri, index) => (
-                  <View key={index} style={styles.imagePreviewWrapper}>
-                    <Image source={{ uri }} style={styles.previewImage} />
-                    <TouchableOpacity style={styles.removeImageButton} onPress={() => removeImage(index)}>
-                      <Text style={styles.removeImageText}>×</Text>
-                    </TouchableOpacity>
-                  </View>
-                ))}
-              </ScrollView>
-            )}
-
             <Text style={styles.inputLabel}>Location</Text>
             <View style={styles.locationRow}>
-            {isLocating ? (
-              <Text style={styles.loadingText}>Locating...</Text>
-            ) : (
-              <TextInput
-                style={[styles.input, { flex: 1 }]}
-                placeholder="Auto-detect or select on map"
-                value={location}
-                onChangeText={(text) => {
-                  setLocation(text);
-                  setIsAutoLocation(false);
-                  setLatitude(null); // Clear coords if manually typing
-                  setLongitude(null);
-                }}
-              />
-            )}
-            <TouchableOpacity style={styles.locationButton} onPress={autoDetectLocation} disabled={isLocating}>
-              <Text style={styles.locationButtonText}>📍</Text>
+              {isLocating ? (
+                <Text style={styles.loadingText}>Detecting location...</Text>
+              ) : (
+                <TextInput
+                  style={[styles.input, { flex: 1 }]}
+                  placeholder="Location will be auto-detected"
+                  value={location}
+                  onChangeText={(text) => {
+                    setLocation(text);
+                    setIsAutoLocation(false);
+                    setLatitude(null);
+                    setLongitude(null);
+                  }}
+                />
+              )}
+              <TouchableOpacity style={styles.locationButton} onPress={autoDetectLocation} disabled={isLocating}>
+                <Text style={styles.locationButtonText}>📍</Text>
+              </TouchableOpacity>
+            </View>
+            
+            <TouchableOpacity style={styles.mapButton} onPress={() => setMapPickerVisible(true)}>
+              <Text style={styles.mapButtonText}>Select on Map</Text>
             </TouchableOpacity>
-          </View>
-          {/* New "Select on Map" Button */}
-          <TouchableOpacity style={styles.mapButton} onPress={() => setMapPickerVisible(true)}>
-            <Text style={styles.mapButtonText}>Select on Map</Text>
+
             <LocationPickerModal
-        visible={isMapPickerVisible}
-        onClose={() => setMapPickerVisible(false)}
-        onLocationSelect={({ address, lat, lng }) => {
-          setLocation(address);
-          setLatitude(lat);
-          setLongitude(lng);
-        }}
-      />
-          </TouchableOpacity>
+              visible={isMapPickerVisible}
+              onClose={() => setMapPickerVisible(false)}
+              onLocationSelect={({ address, lat, lng }) => {
+                setLocation(address);
+                setLatitude(lat);
+                setLongitude(lng);
+                setMapPickerVisible(false);
+              }}
+            />
 
             <View style={styles.modalButtonRow}>
               <TouchableOpacity style={styles.cancelButton} onPress={handleClose}>
@@ -336,7 +369,6 @@ const ReportModal: React.FC<ReportModalProps> = ({ visible, onClose, onSubmit })
         </View>
       </KeyboardAvoidingView>
     </Modal>
-    
   );
 };
 
@@ -351,13 +383,84 @@ const styles = StyleSheet.create({
   descriptionRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 8 },
   aiButton: { backgroundColor: '#F39C12', borderRadius: 8, width: 40, height: 40, justifyContent: 'center', alignItems: 'center' },
   aiButtonText: { color: '#FFF', fontSize: 14, fontWeight: 'bold' },
-  photoButton: { borderWidth: 1, borderColor: '#F39C12', borderRadius: 8, padding: 12, alignItems: 'center', backgroundColor: '#FFF9F0', marginTop: 16 },
-  photoButtonText: { color: '#F39C12', fontSize: 16, fontWeight: '600' },
-  imagePreviewContainer: { marginTop: 12 },
-  imagePreviewWrapper: { position: 'relative', marginRight: 8 },
-  previewImage: { width: 80, height: 80, borderRadius: 8 },
-  removeImageButton: { position: 'absolute', top: -8, right: -8, backgroundColor: '#E74C3C', borderRadius: 12, width: 24, height: 24, justifyContent: 'center', alignItems: 'center' },
-  removeImageText: { color: '#FFF', fontSize: 16, fontWeight: 'bold' },
+  
+  // Updated Photo Styles
+  photoUploadContainer: {
+    borderWidth: 2,
+    borderColor: '#F39C12',
+    borderStyle: 'dashed',
+    borderRadius: 12,
+    backgroundColor: '#FFF9F0',
+    marginTop: 8,
+    marginBottom: 8,
+    overflow: 'hidden',
+  },
+  emptyPhotoContainer: {
+    height: 120,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  addPhotoIcon: {
+    fontSize: 48,
+    color: '#F39C12',
+    fontWeight: '300',
+  },
+  addPhotoText: {
+    color: '#F39C12',
+    fontSize: 16,
+    fontWeight: '600',
+    marginTop: 8,
+  },
+  imagePreviewContainer: {
+    height: 120,
+  },
+  imagePreviewContent: {
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  imagePreviewWrapper: {
+    position: 'relative',
+    marginRight: 12,
+  },
+  previewImage: {
+    width: 100,
+    height: 100,
+    borderRadius: 8,
+  },
+  removeImageButton: {
+    position: 'absolute',
+    top: -8,
+    right: -8,
+    backgroundColor: '#E74C3C',
+    borderRadius: 12,
+    width: 24,
+    height: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  removeImageText: {
+    color: '#FFF',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  addMorePhotosButton: {
+    width: 100,
+    height: 100,
+    borderWidth: 2,
+    borderColor: '#F39C12',
+    borderStyle: 'dashed',
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#FFF',
+  },
+  addMorePhotosIcon: {
+    fontSize: 32,
+    color: '#F39C12',
+    fontWeight: '300',
+  },
+  
   locationRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   locationButton: { backgroundColor: '#F39C12', borderRadius: 8, width: 40, height: 40, justifyContent: 'center', alignItems: 'center' },
   locationButtonText: { fontSize: 16 },
