@@ -13,6 +13,8 @@ import HeaderDashboard from '../components/HeaderDashboard';
 import ActionsTips from '../components/ActionsTips';
 import ReportModal from '../components/ReportModal';
 import NotificationModal from '../components/NotificationModal'
+import NearbyReports from '../components/Nearby';
+
 
 interface Notification {
   id: string;
@@ -99,28 +101,30 @@ const HomeScreen: React.FC = () => {
       <StatusBar barStyle="dark-content" backgroundColor="#FFF9F0" />
 
       <ScrollView showsVerticalScrollIndicator={false}>
-        <HeaderDashboard
-          userName={user?.name || "Loading..."}
-          onNotificationPress={() => setNotificationModalVisible(true)}
-          statsData={statsData}
-        />
+      <HeaderDashboard
+        userName={user?.name || "Loading..."}
+        onNotificationPress={() => setNotificationModalVisible(true)}
+        statsData={statsData}
+      />
 
-        <ActionsTips
-          onReportIssue={() => setModalVisible(true)}
-        />
+      <ActionsTips
+        onReportIssue={() => setModalVisible(true)}
+      />
+      
+      <NearbyReports />
       </ScrollView>
 
       <ReportModal
-        visible={modalVisible}
-        onClose={() => setModalVisible(false)}
-        // @ts-ignore 
-        onSubmit={submitReport}
+      visible={modalVisible}
+      onClose={() => setModalVisible(false)}
+      // @ts-ignore 
+      onSubmit={submitReport}
       />
 
       <NotificationModal
-        visible={notificationModalVisible}
-        onClose={() => setNotificationModalVisible(false)}
-        notifications={notifications}
+      visible={notificationModalVisible}
+      onClose={() => setNotificationModalVisible(false)}
+      notifications={notifications}
       />
     </LinearGradient>
   );
