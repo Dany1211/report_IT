@@ -2,6 +2,63 @@ import { useState, useEffect } from "react";
 import { supabase } from "../supabaseClient";
 import { format } from "date-fns";
 import { useLocation } from "react-router-dom"; // Add this hook
+import { AlertCircle, CheckCircle, Clock, Flame, XCircle } from "lucide-react";
+
+// Helper function to return the correct gradient and icon styles for the StatCard
+const getStatCardStyles = (title) => {
+  switch (title) {
+    case "Pending":
+      return {
+        bgGradient: "bg-gradient-to-br from-[#F87171] to-[#DC2626]", // Warm deep red
+        iconBg: "bg-[#B91C1C]", // Dark red for icon
+      };
+    case "Resolved":
+      return {
+        bgGradient: "bg-gradient-to-br from-green-200 to-green-400", // Green for Resolved
+        iconBg: "bg-green-300",
+      };
+    case "In Progress":
+      return {
+        bgGradient: "bg-gradient-to-br from-orange-200 to-orange-400", // Orange for In Progress
+        iconBg: "bg-orange-300",
+      };
+    case "Rejected":
+      return {
+        bgGradient: "bg-gradient-to-br from-gray-200 to-gray-400", // Gray for Rejected
+        iconBg: "bg-gray-300",
+      };
+    case "Total Reports":
+      return {
+        bgGradient: "bg-gradient-to-br from-purple-200 to-purple-400", // Purple for Total
+        iconBg: "bg-purple-300",
+      };
+    default:
+      return {
+        bgGradient: "bg-gradient-to-br from-gray-200 to-gray-400",
+        iconBg: "bg-gray-300",
+      };
+  }
+};
+
+// StatCard component with updated styling and horizontal layout
+const StatCard = ({ title, value, icon, styles }) => (
+  <div
+    className={`p-6 rounded-2xl shadow-lg transform transition-transform duration-300 hover:scale-105 ${styles.bgGradient}`}
+  >
+    {/* This container aligns the icon and title horizontally */}
+    <div className="flex items-center space-x-4">
+      <div
+        className={`flex items-center justify-center w-12 h-12 rounded-xl text-white ${styles.iconBg}`}
+      >
+        {icon}
+      </div>
+      <p className="text-sm font-semibold text-gray-800 uppercase">{title}</p>
+    </div>
+
+    {/* The value remains below for visual emphasis */}
+    <p className="text-4xl font-extrabold text-gray-900 mt-2">{value}</p>
+  </div>
+);
 
 // Auto-assign priority based on reports in same location
 // Auto-assign priority but keep admin's choice
@@ -373,27 +430,37 @@ export default function Reports() {
       )}
 
       {/* Dashboard Summary */}
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
-        <div className="bg-white p-4 rounded-xl shadow border border-[#FFE4B5]">
-          <h3 className="text-sm text-[#555555]">Total Reports</h3>
-          <p className="text-2xl font-bold text-[#333333]">{totalReports}</p>
-        </div>
-        <div className="bg-white p-4 rounded-xl shadow border border-[#FFE4B5]">
-          <h3 className="text-sm text-[#555555]">Pending</h3>
-          <p className="text-2xl font-bold text-[#FFB347]">{pending}</p>
-        </div>
-        <div className="bg-white p-4 rounded-xl shadow border border-[#FFE4B5]">
-          <h3 className="text-sm text-[#555555]">In Progress</h3>
-          <p className="text-2xl font-bold text-[#FFA500]">{inProgress}</p>
-        </div>
-        <div className="bg-white p-4 rounded-xl shadow border border-[#FFE4B5]">
-          <h3 className="text-sm text-[#555555]">Resolved</h3>
-          <p className="text-2xl font-bold text-[#32CD32]">{resolved}</p>
-        </div>
-        <div className="bg-white p-4 rounded-xl shadow border border-[#FFE4B5]">
-          <h3 className="text-sm text-[#555555]">Rejected</h3>
-          <p className="text-2xl font-bold text-gray-500">{rejected}</p>
-        </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 mb-6">
+        <StatCard
+          title="Total Reports"
+          value={totalReports}
+          icon={<Flame size={24} />}
+          styles={getStatCardStyles("Total Reports")}
+        />
+        <StatCard
+          title="Pending"
+          value={pending}
+          icon={<AlertCircle size={24} />}
+          styles={getStatCardStyles("Pending")}
+        />
+        <StatCard
+          title="In Progress"
+          value={inProgress}
+          icon={<Clock size={24} />}
+          styles={getStatCardStyles("In Progress")}
+        />
+        <StatCard
+          title="Resolved"
+          value={resolved}
+          icon={<CheckCircle size={24} />}
+          styles={getStatCardStyles("Resolved")}
+        />
+        <StatCard
+          title="Rejected"
+          value={rejected}
+          icon={<XCircle size={24} />}
+          styles={getStatCardStyles("Rejected")}
+        />
       </div>
 
       {/* Filters and Search Bar with Refresh Button */}
@@ -799,3 +866,5 @@ export default function Reports() {
     </div>
   );
 }
+
+
