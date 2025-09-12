@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   View,
   Text,
@@ -8,6 +8,7 @@ import {
   Image,
   Switch,
   Alert,
+  RefreshControl,
 } from "react-native";
 import { MaterialIcons, Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
@@ -19,62 +20,42 @@ const ProfileScreen = () => {
   const [selectedLanguage, setSelectedLanguage] = useState("English");
   const [user, setUser] = useState<{ name: string; email: string } | null>(null);
   const router = useRouter();
-
-  // +++ ADD STATE FOR DYNAMIC STATS +++
   const [issuesReported, setIssuesReported] = useState(0);
   const [issuesResolved, setIssuesResolved] = useState(0);
+  const [refreshing, setRefreshing] = useState(false);
 
-  // ✅ Fetch user info (name + email)
-  useEffect(() => {
-    const fetchUserDataAndStats = async () => {
-      try {
-        const { data: { user } } = await supabase.auth.getUser();
+  const fetchUserDataAndStats = useCallback(async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const [profileResponse, reportedResponse, resolvedResponse] = await Promise.all([
+          supabase.from("profiles").select("name").eq("id", user.id).single(),
+          supabase.from("reports").select('*', { count: 'exact', head: true }).eq("user_id", user.id),
+          supabase.from("reports").select('*', { count: 'exact', head: true }).eq("user_id", user.id).ilike("status", "resolved")
+        ]);
 
-        if (user) {
-          // --- Fetch Profile Name and Report Stats Concurrently ---
-          const [profileResponse, reportedResponse, resolvedResponse] = await Promise.all([
-            // 1. Fetch user's name from profiles table
-            supabase.from("profiles").select("name").eq("id", user.id).single(),
-
-            // 2. Fetch the count of all reports by the user
-            supabase.from("reports")
-              .select('*', { count: 'exact', head: true })
-              .eq("user_id", user.id),
-
-            // 3. Fetch the count of 'resolved' reports by the user
-            supabase.from("reports")
-              .select('*', { count: 'exact', head: true })
-              .eq("user_id", user.id)
-              .eq("status", "Resolved")
-          ]);
-
-          // --- Process Profile Response ---
-          if (profileResponse.error) {
-            console.error("Error fetching profile:", profileResponse.error.message);
-          } else {
-            setUser({
-              name: profileResponse.data?.name || "Unknown",
-              email: user.email || "No email", // Get email directly from auth user
-            });
-          }
-
-          // --- Process Stats Responses ---
-          if (reportedResponse.error) console.error("Error fetching reported count:", reportedResponse.error.message);
-          else setIssuesReported(reportedResponse.count || 0);
-
-          if (resolvedResponse.error) console.error("Error fetching resolved count:", resolvedResponse.error.message);
-          else setIssuesResolved(resolvedResponse.count || 0);
-
-        }
-      } catch (err) {
-        console.error("Unexpected error fetching data:", err);
+        if (profileResponse.error) console.error("Error fetching profile:", profileResponse.error.message);
+        else setUser({ name: profileResponse.data?.name || "Unknown", email: user.email || "No email" });
+        if (reportedResponse.error) console.error("Error fetching reported count:", reportedResponse.error.message);
+        else setIssuesReported(reportedResponse.count || 0);
+        if (resolvedResponse.error) console.error("Error fetching resolved count:", resolvedResponse.error.message);
+        else setIssuesResolved(resolvedResponse.count || 0);
       }
-    };
-
-    fetchUserDataAndStats();
+    } catch (err) {
+      console.error("Unexpected error fetching data:", err);
+    }
   }, []);
 
-  // Light & Dark themes
+  useEffect(() => {
+    fetchUserDataAndStats();
+  }, [fetchUserDataAndStats]);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await fetchUserDataAndStats();
+    setRefreshing(false);
+  }, [fetchUserDataAndStats]);
+
   const LIGHT_COLORS = {
     backgroundGradient: ["#FFF9F0", "#FFF1C6"],
     card: "#FFFFFF",
@@ -86,7 +67,6 @@ const ProfileScreen = () => {
     pending: "#FFB347",
     resolved: "#32CD32",
   };
-
   const DARK_COLORS = {
     backgroundGradient: ["#1e1e1e", "#333333"],
     card: "#2a2a2a",
@@ -98,242 +78,152 @@ const ProfileScreen = () => {
     pending: "#FFB347",
     resolved: "#2ECC71",
   };
-
   const COLORS = isDarkMode ? DARK_COLORS : LIGHT_COLORS;
 
-  const handleEditProfile = () => {
-    Alert.alert("Edit Profile", "Edit profile functionality coming soon!");
-  };
-
-  const handleLanguageSelect = () => {
-    Alert.alert("Language Selection", "Choose your preferred language", [
-      { text: "English", onPress: () => setSelectedLanguage("English") },
-      { text: "Marathi", onPress: () => setSelectedLanguage("Marathi") },
-      { text: "Hindi", onPress: () => setSelectedLanguage("Hindi") },
-      { text: "Cancel", style: "cancel" },
-    ]);
-  };
-
+  const handleEditProfile = () => Alert.alert("Edit Profile", "Edit profile functionality coming soon!");
+  const handleLanguageSelect = () => Alert.alert("Language Selection", "Choose your preferred language", [
+    { text: "English", onPress: () => setSelectedLanguage("English") },
+    { text: "Marathi", onPress: () => setSelectedLanguage("Marathi") },
+    { text: "Hindi", onPress: () => setSelectedLanguage("Hindi") },
+    { text: "Cancel", style: "cancel" },
+  ]);
   const handleLogout = async () => {
     await supabase.auth.signOut();
     router.replace("/login");
   };
 
+  // +++ NEW: Handler for the Dark Mode alert +++
+  const handleDarkModeToggle = () => {
+    Alert.alert(
+      "Feature Coming Soon",
+      "Heads up! A full-app dark mode is on its way and will be available in a future update."
+    );
+  };
+
   return (
     //@ts-ignore
     <LinearGradient colors={COLORS.backgroundGradient} style={styles.container}>
-      <ScrollView contentContainerStyle={styles.contentContainer}>
+      <ScrollView 
+        contentContainerStyle={styles.contentContainer}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.primary} />}
+      >
         {/* Profile Header */}
         <View style={[styles.profileHeader, { backgroundColor: COLORS.card }]}>
           <View style={styles.avatarContainer}>
             <Image
-              source={{
-                uri: "https://via.placeholder.com/100x100/E3F2FD/2196F3?text=JD",
-              }}
+              source={{ uri: "https://via.placeholder.com/100x100/E3F2FD/2196F3?text=JD" }}
               style={[styles.avatar, { backgroundColor: COLORS.secondary }]}
             />
           </View>
-          <Text
-            style={[
-              styles.userName,
-              { color: COLORS.textHeader },
-              !user?.name && { fontWeight: "normal" } // remove bold for Loading...
-            ]}
-          >
+          <Text style={[styles.userName, { color: COLORS.textHeader }, !user?.name && { fontWeight: "normal" }]}>
             {user?.name || "Loading..."}
           </Text>
-
           <Text style={[styles.userEmail, { color: COLORS.textSub }]}>
             {user?.email || ""}
           </Text>
           <TouchableOpacity
-            style={[
-              styles.editButton,
-              { borderColor: COLORS.primary, backgroundColor: COLORS.secondary },
-            ]}
+            style={[styles.editButton, { borderColor: COLORS.primary, backgroundColor: COLORS.secondary }]}
             onPress={handleEditProfile}
           >
             <MaterialIcons name="edit" size={16} color={COLORS.primary} />
-            <Text style={[styles.editButtonText, { color: COLORS.primary }]}>
-              Edit Profile
-            </Text>
+            <Text style={[styles.editButtonText, { color: COLORS.primary }]}>Edit Profile</Text>
           </TouchableOpacity>
         </View>
 
         {/* Stats */}
         <View style={styles.statsContainer}>
           <View style={[styles.statCard, { backgroundColor: COLORS.card }]}>
-            <View
-              style={[
-                styles.statIconContainer,
-                { backgroundColor: `rgba(255, 179, 71, 0.2)` },
-              ]}
-            >
-              <MaterialIcons
-                name="report-problem"
-                size={24}
-                color={COLORS.pending}
-              />
+            <View style={[styles.statIconContainer, { backgroundColor: `rgba(255, 179, 71, 0.2)` }]}>
+              <MaterialIcons name="report-problem" size={24} color={COLORS.pending} />
             </View>
-            <Text style={[styles.statNumber, { color: COLORS.textHeader }]}>
-              {issuesReported}
-            </Text>
-            <Text style={[styles.statLabel, { color: COLORS.textSub }]}>
-              Issues Reported
-            </Text>
+            <Text style={[styles.statNumber, { color: COLORS.textHeader }]}>{issuesReported}</Text>
+            <Text style={[styles.statLabel, { color: COLORS.textSub }]}>Issues Reported</Text>
           </View>
-
           <View style={[styles.statCard, { backgroundColor: COLORS.card }]}>
             <View style={[styles.statIconContainer, { backgroundColor: isDarkMode ? `rgba(46, 204, 113, 0.2)` : `rgba(50, 205, 50, 0.2)` }]}>
-
-              <MaterialIcons
-                name="check-circle"
-                size={24}
-                color={COLORS.resolved}
-              />
-
+              <MaterialIcons name="check-circle" size={24} color={COLORS.resolved} />
             </View>
-            <Text style={[styles.statNumber, { color: COLORS.textHeader }]}>
-              {issuesResolved}
-            </Text>
-            <Text style={[styles.statLabel, { color: COLORS.textSub }]}>
-              Issues Resolved
-            </Text>
+            <Text style={[styles.statNumber, { color: COLORS.textHeader }]}>{issuesResolved}</Text>
+            <Text style={[styles.statLabel, { color: COLORS.textSub }]}>Issues Resolved</Text>
           </View>
-
           <View style={[styles.statCard, { backgroundColor: COLORS.card }]}>
             <View style={[styles.statIconContainer, { backgroundColor: isDarkMode ? `rgba(255, 165, 0, 0.2)` : `rgba(255, 165, 0, 0.2)` }]}>
-
               <MaterialIcons name="stars" size={24} color={COLORS.primary} />
             </View>
-
-            <Text style={[styles.statNumber, { color: COLORS.textHeader }]}>
-              12
-            </Text>
-            <Text style={[styles.statLabel, { color: COLORS.textSub }]}>
-              My Rewards
-            </Text>
+            <Text style={[styles.statNumber, { color: COLORS.textHeader }]}>12</Text>
+            <Text style={[styles.statLabel, { color: COLORS.textSub }]}>My Rewards</Text>
           </View>
         </View>
 
         {/* My Rewards */}
         <View style={[styles.rewardsContainer, { backgroundColor: COLORS.card }]}>
-          <Text style={[styles.sectionTitle, { color: COLORS.textHeader }]}>
-            My Rewards
-          </Text>
-
+          <Text style={[styles.sectionTitle, { color: COLORS.textHeader }]}>My Rewards</Text>
           <View style={styles.rewardItem}>
             <MaterialIcons name="star" size={22} color="#FFD700" />
             <View style={styles.rewardTextContainer}>
-              <Text style={[styles.rewardTitle, { color: COLORS.textHeader }]}>
-                Gold Badge
-              </Text>
-              <Text style={[styles.rewardSubtitle, { color: COLORS.textSub }]}>
-                Earned for 10+ reports resolved
-              </Text>
+              <Text style={[styles.rewardTitle, { color: COLORS.textHeader }]}>Gold Badge</Text>
+              <Text style={[styles.rewardSubtitle, { color: COLORS.textSub }]}>Earned for 10+ reports resolved</Text>
             </View>
           </View>
-
           <View style={styles.rewardItem}>
             <MaterialIcons name="emoji-events" size={22} color="#FF9800" />
             <View style={styles.rewardTextContainer}>
-              <Text style={[styles.rewardTitle, { color: COLORS.textHeader }]}>
-                Top Reporter
-              </Text>
-              <Text style={[styles.rewardSubtitle, { color: COLORS.textSub }]}>
-                24 issues reported
-              </Text>
+              <Text style={[styles.rewardTitle, { color: COLORS.textHeader }]}>Top Reporter</Text>
+              <Text style={[styles.rewardSubtitle, { color: COLORS.textSub }]}>24 issues reported</Text>
             </View>
           </View>
-
           <View style={styles.rewardItem}>
             <MaterialIcons name="military-tech" size={22} color="#9C27B0" />
             <View style={styles.rewardTextContainer}>
-              <Text style={[styles.rewardTitle, { color: COLORS.textHeader }]}>
-                Community Hero
-              </Text>
-              <Text style={[styles.rewardSubtitle, { color: COLORS.textSub }]}>
-                Helping resolve 18 issues
-              </Text>
+              <Text style={[styles.rewardTitle, { color: COLORS.textHeader }]}>Community Hero</Text>
+              <Text style={[styles.rewardSubtitle, { color: COLORS.textSub }]}>Helping resolve 18 issues</Text>
             </View>
           </View>
         </View>
 
         {/* Settings */}
         <View style={[styles.settingsContainer, { backgroundColor: COLORS.card }]}>
-          <Text style={[styles.sectionTitle, { color: COLORS.textHeader }]}>
-            Settings
-          </Text>
+          <Text style={[styles.sectionTitle, { color: COLORS.textHeader }]}>Settings</Text>
 
-          {/* Dark Mode */}
-          <View
-            style={[
-              styles.settingItem,
-              { borderBottomColor: isDarkMode ? "#444" : "#F0F0F0" },
-            ]}
+          {/* +++ MODIFIED: Dark Mode is now a TouchableOpacity that shows an alert +++ */}
+          <TouchableOpacity
+            style={[styles.settingItem, { borderBottomColor: isDarkMode ? "#444" : "#F0F0F0" }]}
+            onPress={handleDarkModeToggle}
           >
             <View style={styles.settingLeft}>
-              <View
-                style={[
-                  styles.settingIconContainer,
-                  { backgroundColor: COLORS.secondary },
-                ]}
-              >
-                <Ionicons
-                  name={isDarkMode ? "moon" : "sunny"}
-                  size={20}
-                  color={COLORS.textSub}
-                />
+              <View style={[styles.settingIconContainer, { backgroundColor: COLORS.secondary }]}>
+                <Ionicons name={"moon"} size={20} color={COLORS.textSub} />
               </View>
-              <Text style={[styles.settingText, { color: COLORS.textHeader }]}>
-                Dark Mode
-              </Text>
+              <Text style={[styles.settingText, { color: COLORS.textHeader }]}>Dark Mode</Text>
             </View>
             <Switch
               value={isDarkMode}
               onValueChange={setIsDarkMode}
               trackColor={{ false: "#E0E0E0", true: COLORS.primary }}
               thumbColor={isDarkMode ? COLORS.buttonText : "#f4f3f4"}
+              disabled={true} // Disable the switch
             />
-          </View>
+          </TouchableOpacity>
 
           {/* Language */}
           <TouchableOpacity style={styles.settingItem} onPress={handleLanguageSelect}>
             <View style={styles.settingLeft}>
-              <View
-                style={[
-                  styles.settingIconContainer,
-                  { backgroundColor: COLORS.secondary },
-                ]}
-              >
+              <View style={[styles.settingIconContainer, { backgroundColor: COLORS.secondary }]}>
                 <MaterialIcons name="language" size={20} color={COLORS.textSub} />
               </View>
-              <Text style={[styles.settingText, { color: COLORS.textHeader }]}>
-                Language
-              </Text>
+              <Text style={[styles.settingText, { color: COLORS.textHeader }]}>Language</Text>
             </View>
             <View style={styles.settingRight}>
-              <Text style={[styles.settingValue, { color: COLORS.textSub }]}>
-                {selectedLanguage}
-              </Text>
-              <MaterialIcons
-                name="keyboard-arrow-right"
-                size={20}
-                color={COLORS.textSub}
-              />
+              <Text style={[styles.settingValue, { color: COLORS.textSub }]}>{selectedLanguage}</Text>
+              <MaterialIcons name="keyboard-arrow-right" size={20} color={COLORS.textSub} />
             </View>
           </TouchableOpacity>
         </View>
 
         {/* Logout */}
-        <TouchableOpacity
-          style={[styles.logoutButton, { backgroundColor: COLORS.primary }]}
-          onPress={handleLogout}
-        >
+        <TouchableOpacity style={[styles.logoutButton, { backgroundColor: COLORS.primary }]} onPress={handleLogout}>
           <MaterialIcons name="logout" size={20} color={COLORS.buttonText} />
-          <Text style={[styles.logoutText, { color: COLORS.buttonText }]}>
-            Logout
-          </Text>
+          <Text style={[styles.logoutText, { color: COLORS.buttonText }]}>Logout</Text>
         </TouchableOpacity>
       </ScrollView>
     </LinearGradient>
@@ -342,10 +232,9 @@ const ProfileScreen = () => {
 
 export default ProfileScreen;
 
-// ✅ Base Styles (theme-independent)
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  contentContainer: { paddingVertical: 30, paddingBottom: 75 },
+  contentContainer: { paddingVertical: 30, paddingBottom: 100 }, // Increased bottom padding
   profileHeader: {
     alignItems: "center",
     paddingVertical: 30,
@@ -360,7 +249,7 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   avatarContainer: { paddingTop: 30, borderRadius: 50, marginBottom: 15 },
-  avatar: { width: 150, height: 150, borderRadius: 50 },
+  avatar: { width: 150, height: 150, borderRadius: 75 }, // Corrected for circle
   userName: { fontSize: 24, fontWeight: "bold", marginBottom: 5 },
   userEmail: { fontSize: 16, marginBottom: 15 },
   editButton: {
@@ -404,7 +293,7 @@ const styles = StyleSheet.create({
   settingsContainer: {
     marginHorizontal: 20,
     borderRadius: 16,
-    paddingVertical: 20,
+    paddingVertical: 10, // Reduced padding
     paddingHorizontal: 20,
     marginBottom: 20,
     shadowColor: "#000",
@@ -413,7 +302,7 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
     elevation: 4,
   },
-  sectionTitle: { fontSize: 18, fontWeight: "bold", marginBottom: 20 },
+  sectionTitle: { fontSize: 18, fontWeight: "bold", marginBottom: 10, paddingTop: 10 }, // Adjusted padding
   settingItem: {
     flexDirection: "row",
     alignItems: "center",
@@ -446,7 +335,7 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   rewardItem: { flexDirection: "row", alignItems: "center", marginBottom: 15 },
-  rewardTextContainer: { marginLeft: 15 },
+  rewardTextContainer: { marginLeft: 15, flex: 1 },
   rewardTitle: { fontSize: 16, fontWeight: "600" },
   rewardSubtitle: { fontSize: 13, marginTop: 2 },
   logoutButton: {
@@ -456,7 +345,6 @@ const styles = StyleSheet.create({
     marginHorizontal: 20,
     paddingVertical: 15,
     borderRadius: 16,
-    marginBottom: 75,
   },
   logoutText: {
     fontSize: 16,
@@ -464,3 +352,4 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
 });
+

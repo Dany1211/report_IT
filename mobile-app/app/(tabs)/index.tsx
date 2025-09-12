@@ -102,6 +102,7 @@ const HomeScreen: React.FC = () => {
 
       <ScrollView showsVerticalScrollIndicator={false}>
       <HeaderDashboard
+      //@ts-ignore
         userName={user?.name || "Loading..."}
         onNotificationPress={() => setNotificationModalVisible(true)}
         statsData={statsData}

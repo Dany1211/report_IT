@@ -289,7 +289,7 @@ const ReportModal: React.FC<ReportModalProps> = ({ visible, onClose, onSubmit, o
             reporter_email: user.email,
             user_id: user.id,
             created_at: createdAt,
-            status: 'pending', // Default status
+            status: 'Pending', // Default status
           },
         ])
         .select('id')
