@@ -28,9 +28,19 @@ interface ReportModalProps {
   visible: boolean;
   onClose: () => void;
   onSubmit?: () => void;
+  onViewReport?: (reportId: string) => void; // New prop for viewing duplicate reports
 }
 
-const ReportModal: React.FC<ReportModalProps> = ({ visible, onClose, onSubmit }) => {
+interface DuplicateReport {
+  id: string;
+  issue_type: string;
+  description: string;
+  location: string;
+  status: string;
+  created_at: string;
+}
+
+const ReportModal: React.FC<ReportModalProps> = ({ visible, onClose, onSubmit, onViewReport }) => {
   const [issueType, setIssueType] = useState('');
   const [description, setDescription] = useState('');
   const [urgency, setUrgency] = useState<'low' | 'medium' | 'high'>('medium');
@@ -39,6 +49,7 @@ const ReportModal: React.FC<ReportModalProps> = ({ visible, onClose, onSubmit })
   const [isAutoLocation, setIsAutoLocation] = useState(true);
   const [isLocating, setIsLocating] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isCheckingDuplicates, setIsCheckingDuplicates] = useState(false);
 
   const [isMapPickerVisible, setMapPickerVisible] = useState(false);
 
@@ -53,9 +64,81 @@ const ReportModal: React.FC<ReportModalProps> = ({ visible, onClose, onSubmit })
     }
   }, [visible]);
 
-  /** Image Picker */
+  /** Check for duplicate reports */
+  const checkForDuplicates = async (issueType: string, location: string): Promise<DuplicateReport | null> => {
+    if (!issueType.trim() || !location.trim()) return null;
+
+    try {
+      setIsCheckingDuplicates(true);
+      
+      // Search for similar reports within a reasonable distance/area
+      // Using ILIKE for case-insensitive partial matching
+      const { data: duplicates, error } = await supabase
+        .from('reports')
+        .select('id, issue_type, description, location, status, created_at')
+        .ilike('issue_type', `%${issueType}%`)
+        .ilike('location', `%${location.split(',')[0]}%`) // Match first part of location (street/area)
+        .in('status', ['pending', 'in_progress', 'under_review']) // Not resolved or rejected
+        .order('created_at', { ascending: false })
+        .limit(1);
+
+      if (error) throw error;
+
+      return duplicates && duplicates.length > 0 ? duplicates[0] : null;
+    } catch (err) {
+      console.error('Error checking duplicates:', err);
+      return null;
+    } finally {
+      setIsCheckingDuplicates(false);
+    }
+  };
+
+  /** Image Picker with Camera Option */
+  const showImageOptions = () => {
+    if (selectedImages.length >= 5) {
+      Alert.alert('Maximum limit reached', 'You can only select up to 5 images.');
+      return;
+    }
+
+    Alert.alert(
+      'Add Photo',
+      'Choose an option',
+      [
+        { text: 'Camera', onPress: takePhoto },
+        { text: 'Photo Library', onPress: pickImages },
+        { text: 'Cancel', style: 'cancel' },
+      ]
+    );
+  };
+
+  /** Take Photo with Camera */
+  const takePhoto = async () => {
+    if (selectedImages.length >= 5) {
+      Alert.alert('Maximum limit reached', 'You can only select up to 5 images.');
+      return;
+    }
+
+    const { status } = await ImagePicker.requestCameraPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permission denied', 'Camera permission is required');
+      return;
+    }
+
+    const result = await ImagePicker.launchCameraAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      quality: 0.8,
+      allowsEditing: true,
+      aspect: [4, 3],
+    });
+
+    if (!result.canceled && result.assets && result.assets.length > 0) {
+      const newImage = result.assets[0].uri;
+      setSelectedImages([...selectedImages, newImage]);
+    }
+  };
+
+  /** Pick Images from Library */
   const pickImages = async () => {
-    // 1. Check if the user has already selected the maximum number of images.
     if (selectedImages.length >= 5) {
       Alert.alert('Maximum limit reached', 'You can only select up to 5 images.');
       return;
@@ -67,14 +150,12 @@ const ReportModal: React.FC<ReportModalProps> = ({ visible, onClose, onSubmit })
       return;
     }
 
-    // 2. Calculate how many more images can be selected.
     const selectionLimit = 5 - selectedImages.length;
 
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       quality: 0.8,
       allowsMultipleSelection: true,
-      // 3. Pass the calculated limit to the picker.
       selectionLimit: selectionLimit,
     });
 
@@ -130,7 +211,7 @@ const ReportModal: React.FC<ReportModalProps> = ({ visible, onClose, onSubmit })
 
   /** Submit Report */
   const handleSubmitReport = async () => {
-     if (
+    if (
       !issueType.trim() || 
       !description.trim() || 
       !location.trim() || 
@@ -142,8 +223,36 @@ const ReportModal: React.FC<ReportModalProps> = ({ visible, onClose, onSubmit })
         "Please fill out all required fields and add at least one photo before submitting.",
         [{ text: "OK" }]
       );
-      return; // Stop the function if validation fails
+      return;
     }
+
+    // Check for duplicates before submitting
+    const duplicate = await checkForDuplicates(issueType, location);
+    if (duplicate) {
+      Alert.alert(
+        "Similar Issue Already Reported",
+        `A similar ${duplicate.issue_type} issue has already been reported in this area and is currently ${duplicate.status}.\n\nReported on: ${new Date(duplicate.created_at).toLocaleDateString()}`,
+        [
+          { text: "Submit Anyway", onPress: () => proceedWithSubmission() },
+          { 
+            text: "View Existing Report", 
+            onPress: () => {
+              if (onViewReport) {
+                onViewReport(duplicate.id);
+                handleClose();
+              }
+            }
+          },
+          { text: "Cancel", style: "cancel" }
+        ]
+      );
+      return;
+    }
+
+    await proceedWithSubmission();
+  };
+
+  const proceedWithSubmission = async () => {
     setIsSubmitting(true);
     try {
       // 1. Get current user
@@ -180,6 +289,7 @@ const ReportModal: React.FC<ReportModalProps> = ({ visible, onClose, onSubmit })
             reporter_email: user.email,
             user_id: user.id,
             created_at: createdAt,
+            status: 'pending', // Default status
           },
         ])
         .select('id')
@@ -260,15 +370,16 @@ const ReportModal: React.FC<ReportModalProps> = ({ visible, onClose, onSubmit })
           <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
             <Text style={styles.modalTitle}>Report New Issue</Text>
 
-            {/* Photos Section - Moved to Top */}
+            {/* Photos Section - Enhanced with Camera Option */}
             <Text style={styles.inputLabel}>Photos *</Text>
             {selectedImages.length === 0 ? (
-              <TouchableOpacity style={styles.photoUploadContainer} onPress={pickImages}>
-                <View style={styles.emptyPhotoContainer}>
+              <View style={styles.photoUploadContainer}>
+                <TouchableOpacity style={styles.emptyPhotoContainer} onPress={showImageOptions}>
                   <Text style={styles.addPhotoIcon}>+</Text>
                   <Text style={styles.addPhotoText}>Add Photos</Text>
-                </View>
-              </TouchableOpacity>
+                </TouchableOpacity>
+                
+              </View>
             ) : (
               <View style={styles.photoUploadContainer}>
                 <ScrollView 
@@ -285,10 +396,13 @@ const ReportModal: React.FC<ReportModalProps> = ({ visible, onClose, onSubmit })
                       </TouchableOpacity>
                     </View>
                   ))}
-                  <TouchableOpacity style={styles.addMorePhotosButton} onPress={pickImages}>
-                    <Text style={styles.addMorePhotosIcon}>+</Text>
-                  </TouchableOpacity>
+                  {selectedImages.length < 5 && (
+                    <TouchableOpacity style={styles.addMorePhotosButton} onPress={showImageOptions}>
+                      <Text style={styles.addMorePhotosIcon}>+</Text>
+                    </TouchableOpacity>
+                  )}
                 </ScrollView>
+
               </View>
             )}
 
@@ -377,8 +491,14 @@ const ReportModal: React.FC<ReportModalProps> = ({ visible, onClose, onSubmit })
               <TouchableOpacity style={styles.cancelButton} onPress={handleClose}>
                 <Text style={styles.cancelButtonText}>Cancel</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.submitButton} onPress={handleSubmitReport} disabled={isSubmitting}>
-                <Text style={styles.submitButtonText}>{isSubmitting ? 'Submitting...' : 'Submit Report'}</Text>
+              <TouchableOpacity 
+                style={[styles.submitButton, (isSubmitting || isCheckingDuplicates) && styles.disabledButton]} 
+                onPress={handleSubmitReport} 
+                disabled={isSubmitting || isCheckingDuplicates}
+              >
+                <Text style={styles.submitButtonText}>
+                  {isCheckingDuplicates ? 'Checking...' : isSubmitting ? 'Submitting...' : 'Submit Report'}
+                </Text>
               </TouchableOpacity>
             </View>
           </ScrollView>
@@ -392,6 +512,7 @@ const ReportModal: React.FC<ReportModalProps> = ({ visible, onClose, onSubmit })
 const styles = StyleSheet.create({
   bottomModalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
   bottomModalContainer: { backgroundColor: '#FFFFFF', borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 20, width: '100%', maxHeight: '90%' },
+  scrollContent: { paddingBottom: 20 },
   modalTitle: { fontSize: 24, fontWeight: 'bold', color: '#333', marginBottom: 20, textAlign: 'center' },
   inputLabel: { fontSize: 16, fontWeight: '600', color: '#333', marginBottom: 8, marginTop: 12 },
   input: { borderWidth: 1, borderColor: '#E0E0E0', borderRadius: 8, padding: 12, fontSize: 16, backgroundColor: '#F9F9F9' },
@@ -400,7 +521,7 @@ const styles = StyleSheet.create({
   aiButton: { backgroundColor: '#F39C12', borderRadius: 8, width: 40, height: 40, justifyContent: 'center', alignItems: 'center' },
   aiButtonText: { color: '#FFF', fontSize: 14, fontWeight: 'bold' },
   
-  // Updated Photo Styles
+  // Enhanced Photo Styles
   photoUploadContainer: {
     borderWidth: 2,
     borderColor: '#F39C12',
@@ -426,6 +547,29 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     marginTop: 8,
+  },
+  photoOptionsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    backgroundColor: '#FFF',
+    borderTopWidth: 1,
+    borderTopColor: '#F39C12',
+  },
+  photoOptionButton: {
+    alignItems: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+  },
+  photoOptionIcon: {
+    fontSize: 24,
+    marginBottom: 4,
+  },
+  photoOptionText: {
+    color: '#F39C12',
+    fontSize: 12,
+    fontWeight: '600',
   },
   imagePreviewContainer: {
     height: 120,
@@ -485,6 +629,7 @@ const styles = StyleSheet.create({
   cancelButtonText: { color: '#333', fontSize: 16, fontWeight: '600' },
   submitButton: { backgroundColor: '#F39C12', borderRadius: 8, padding: 12, width: (width - 90) / 2, alignItems: 'center' },
   submitButtonText: { color: '#FFF', fontSize: 16, fontWeight: '600' },
+  disabledButton: { backgroundColor: '#BDC3C7' },
   loadingText: { fontSize: 16, color: '#555', fontStyle: 'italic', padding: 12, flex: 1 },
   dropdownContainer: { borderWidth: 1, borderColor: "#E0E0E0", borderRadius: 8, height: 50, backgroundColor: "#F9F9F9", overflow: "hidden", marginTop: 8 },
   dropdown: { height: 50, paddingHorizontal: 10, fontSize: 15, color: "#333" },
