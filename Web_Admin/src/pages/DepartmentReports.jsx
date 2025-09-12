@@ -1,6 +1,63 @@
 import { useState, useEffect } from "react";
 import { supabase } from "../supabaseClient";
-import { Eye, Edit3, PlusCircle, X } from "lucide-react"; // ✅ lucide-react icons
+import { Eye, Edit3, PlusCircle, X } from "lucide-react"; 
+import { AlertCircle, CheckCircle, Clock, Flame, XCircle } from "lucide-react"; // Import icons for KPI cards
+
+// Helper function to return the correct gradient and icon styles for the StatCard
+const getStatCardStyles = (title) => {
+  switch (title) {
+    case "Pending":
+      return {
+        bgGradient: "bg-gradient-to-br from-[#F87171] to-[#DC2626]", // Warm deep red
+        iconBg: "bg-[#B91C1C]", // Dark red for icon
+      };
+    case "Resolved":
+      return {
+        bgGradient: "bg-gradient-to-br from-green-200 to-green-400", // Green for Resolved
+        iconBg: "bg-green-300",
+      };
+    case "In Progress":
+      return {
+        bgGradient: "bg-gradient-to-br from-orange-200 to-orange-400", // Orange for In Progress
+        iconBg: "bg-orange-300",
+      };
+    case "Rejected":
+      return {
+        bgGradient: "bg-gradient-to-br from-gray-200 to-gray-400", // Gray for Rejected
+        iconBg: "bg-gray-300",
+      };
+    case "Total Reports":
+      return {
+        bgGradient: "bg-gradient-to-br from-purple-200 to-purple-400", // Purple for Total
+        iconBg: "bg-purple-300",
+      };
+    default:
+      return {
+        bgGradient: "bg-gradient-to-br from-gray-200 to-gray-400",
+        iconBg: "bg-gray-300",
+      };
+  }
+};
+
+// StatCard component with updated styling and horizontal layout
+const StatCard = ({ title, value, icon, styles }) => (
+  <div
+    className={`p-6 rounded-2xl shadow-lg transform transition-transform duration-300 hover:scale-105 ${styles.bgGradient}`}
+  >
+    {/* This container aligns the icon and title horizontally */}
+    <div className="flex items-center space-x-4">
+      <div
+        className={`flex items-center justify-center w-12 h-12 rounded-xl text-white ${styles.iconBg}`}
+      >
+        {icon}
+      </div>
+      <p className="text-sm font-semibold text-gray-800 uppercase">{title}</p>
+    </div>
+
+    {/* The value remains below for visual emphasis */}
+    <p className="text-4xl font-extrabold text-gray-900 mt-2">{value}</p>
+  </div>
+);
 
 export default function DepartmentReports() {
   const [reports, setReports] = useState([]);
@@ -74,7 +131,7 @@ export default function DepartmentReports() {
         .eq("department", selectedDept);
 
       if (error) {
-        console.error("❌ Error updating task:", error.message);
+        console.log("❌ Error updating task:", error.message);
         setMessage("❌ Failed to update task.");
       } else {
         setMessage("✅ Task updated successfully!");
@@ -90,7 +147,7 @@ export default function DepartmentReports() {
       ]);
 
       if (error) {
-        console.error("❌ Error assigning task:", error.message);
+        console.log("❌ Error assigning task:", error.message);
         setMessage("❌ Failed to assign task.");
       } else {
         await supabase.from("reports").update({ status: "In Progress" }).eq("id", currentReportId);
@@ -112,23 +169,62 @@ export default function DepartmentReports() {
     return matchPriority && matchStatus;
   });
 
+  // Helper function to get the correct icon for the StatCard
+  const getIconForStatus = (status) => {
+    switch (status) {
+      case "Pending":
+        return <AlertCircle size={24} />;
+      case "Resolved":
+        return <CheckCircle size={24} />;
+      case "In Progress":
+        return <Clock size={24} />;
+      case "Rejected":
+        return <XCircle size={24} />;
+      case "Total Reports":
+        return <Flame size={24} />;
+      default:
+        return null;
+    }
+  };
+
   return (
     <div className="min-h-screen p-6 bg-gradient-to-br from-[#FFF9F0] to-[#FFF1C6]">
       <h1 className="text-3xl font-bold mb-6 text-[#333333]">
         {selectedDept} – Reports
       </h1>
 
-      {/* KPI Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        {Object.entries(kpis).map(([status, count]) => (
-          <div
-            key={status}
-            className="bg-white p-4 rounded-xl shadow border border-[#FFE4B5] hover:shadow-lg transition"
-          >
-            <p className="text-lg font-semibold">{status}</p>
-            <p className="text-2xl font-bold text-[#FF8C00]">{count}</p>
-          </div>
-        ))}
+      {/* KPI Cards (using the new StatCard component) */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 mb-6">
+        <StatCard
+          title="Total Reports"
+          value={reports.length}
+          icon={getIconForStatus("Total Reports")}
+          styles={getStatCardStyles("Total Reports")}
+        />
+        <StatCard
+          title="Pending"
+          value={kpis.Pending}
+          icon={getIconForStatus("Pending")}
+          styles={getStatCardStyles("Pending")}
+        />
+        <StatCard
+          title="In Progress"
+          value={kpis["In Progress"]}
+          icon={getIconForStatus("In Progress")}
+          styles={getStatCardStyles("In Progress")}
+        />
+        <StatCard
+          title="Resolved"
+          value={kpis.Resolved}
+          icon={getIconForStatus("Resolved")}
+          styles={getStatCardStyles("Resolved")}
+        />
+        <StatCard
+          title="Rejected"
+          value={kpis.Rejected}
+          icon={getIconForStatus("Rejected")}
+          styles={getStatCardStyles("Rejected")}
+        />
       </div>
 
       {/* Notifications */}
