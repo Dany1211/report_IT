@@ -402,16 +402,7 @@ const ReportModal: React.FC<ReportModalProps> = ({ visible, onClose, onSubmit, o
                     </TouchableOpacity>
                   )}
                 </ScrollView>
-                <View style={styles.photoOptionsContainer}>
-                  <TouchableOpacity style={styles.photoOptionButton} onPress={takePhoto}>
-                    <Text style={styles.photoOptionIcon}>📷</Text>
-                    <Text style={styles.photoOptionText}>Camera</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity style={styles.photoOptionButton} onPress={pickImages}>
-                    <Text style={styles.photoOptionIcon}>🖼️</Text>
-                    <Text style={styles.photoOptionText}>Gallery</Text>
-                  </TouchableOpacity>
-                </View>
+
               </View>
             )}
 
