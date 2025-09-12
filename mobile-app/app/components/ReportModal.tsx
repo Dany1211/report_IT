@@ -130,6 +130,20 @@ const ReportModal: React.FC<ReportModalProps> = ({ visible, onClose, onSubmit })
 
   /** Submit Report */
   const handleSubmitReport = async () => {
+     if (
+      !issueType.trim() || 
+      !description.trim() || 
+      !location.trim() || 
+      !urgency ||
+      selectedImages.length === 0
+    ) {
+      Alert.alert(
+        "Incomplete Report",
+        "Please fill out all required fields and add at least one photo before submitting.",
+        [{ text: "OK" }]
+      );
+      return; // Stop the function if validation fails
+    }
     setIsSubmitting(true);
     try {
       // 1. Get current user
@@ -247,7 +261,7 @@ const ReportModal: React.FC<ReportModalProps> = ({ visible, onClose, onSubmit })
             <Text style={styles.modalTitle}>Report New Issue</Text>
 
             {/* Photos Section - Moved to Top */}
-            <Text style={styles.inputLabel}>Photos</Text>
+            <Text style={styles.inputLabel}>Photos *</Text>
             {selectedImages.length === 0 ? (
               <TouchableOpacity style={styles.photoUploadContainer} onPress={pickImages}>
                 <View style={styles.emptyPhotoContainer}>
@@ -320,7 +334,7 @@ const ReportModal: React.FC<ReportModalProps> = ({ visible, onClose, onSubmit })
               </TouchableOpacity>
             </View>
 
-            <Text style={styles.inputLabel}>Location</Text>
+            <Text style={styles.inputLabel}>Location *</Text>
             <View style={styles.locationRow}>
               {isLocating ? (
                 <Text style={styles.loadingText}>Detecting location...</Text>
@@ -355,6 +369,8 @@ const ReportModal: React.FC<ReportModalProps> = ({ visible, onClose, onSubmit })
                 setLongitude(lng);
                 setMapPickerVisible(false);
               }}
+              initialLatitude={latitude}
+              initialLongitude={longitude}
             />
 
             <View style={styles.modalButtonRow}>
