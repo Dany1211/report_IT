@@ -876,7 +876,6 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  // fetch ALL reports from supabase for the stats, and recent for the table
   useEffect(() => {
     const fetchReports = async () => {
       setLoading(true);
@@ -897,7 +896,6 @@ export default function Dashboard() {
     fetchReports();
   }, []);
 
-  // calculate stats
   const pendingCount = reports.filter(
     (r) => r.status?.trim().toLowerCase() === "pending"
   ).length;
@@ -908,7 +906,6 @@ export default function Dashboard() {
     (r) => r.status?.trim().toLowerCase() === "in progress"
   ).length;
 
-  // Sort reports to get the 15 most recent for the table
   const recentReports = reports
     .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
     .slice(0, 15);
@@ -918,19 +915,19 @@ export default function Dashboard() {
       <div className="p-8">
         <h1 className="text-2xl font-bold text-[#333333] mb-6">Dashboard</h1>
 
-        {/* Stat Cards */}
+        {/* Stat Cards in the new order */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <StatCard
+            title="Total Issues"
+            value={reports.length}
+            icon={<Flame size={24} />}
+            styles={getStatCardStyles("Total Issues")}
+          />
           <StatCard
             title="Pending Issues"
             value={pendingCount}
             icon={<AlertCircle size={24} />}
             styles={getStatCardStyles("Pending Issues")}
-          />
-          <StatCard
-            title="Resolved Issues"
-            value={resolvedCount}
-            icon={<CheckCircle size={24} />}
-            styles={getStatCardStyles("Resolved Issues")}
           />
           <StatCard
             title="In Progress"
@@ -939,10 +936,10 @@ export default function Dashboard() {
             styles={getStatCardStyles("In Progress")}
           />
           <StatCard
-            title="Total Issues"
-            value={reports.length}
-            icon={<Flame size={24} />}
-            styles={getStatCardStyles("Total Issues")}
+            title="Resolved Issues"
+            value={resolvedCount}
+            icon={<CheckCircle size={24} />}
+            styles={getStatCardStyles("Resolved Issues")}
           />
         </div>
 
