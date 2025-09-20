@@ -7,7 +7,7 @@ import {
   Upload,
   Settings,
   Menu,
-  Users,   // Importing Users icon
+  Users,
 } from "lucide-react";
 
 export default function DashboardLayout() {
@@ -18,7 +18,11 @@ export default function DashboardLayout() {
     { name: "Analytics", to: "/analytics", icon: <BarChart2 size={20} /> },
     { name: "Reports", to: "/reports", icon: <FileText size={20} /> },
     { name: "Exporting", to: "/exporting", icon: <Upload size={20} /> },
-    { name: "Department Reports", to: "/department-reports", icon: <Users size={20} /> },  // Updated here
+    {
+      name: "Department Reports",
+      to: "/department-reports",
+      icon: <Users size={20} />,
+    },
     { name: "Settings", to: "/settings", icon: <Settings size={20} /> },
   ];
 
@@ -28,12 +32,12 @@ export default function DashboardLayout() {
       <aside
         className={`${
           isExpanded ? "w-64" : "w-20"
-        } bg-[#150c03] text-white transition-all duration-300 p-4 flex flex-col shadow-lg`}
+        } bg-[#1A202C] text-[#F0F4F8] transition-all duration-300 p-4 flex flex-col shadow-lg`}
       >
         {/* Toggle button */}
         <button
           onClick={() => setIsExpanded(!isExpanded)}
-          className="mb-6 text-white focus:outline-none"
+          className="mb-6 text-[#F0F4F8] focus:outline-none hover:text-[#D1D8E3]"
         >
           <Menu size={24} />
         </button>
@@ -44,10 +48,10 @@ export default function DashboardLayout() {
               <NavLink
                 to={item.to}
                 className={({ isActive }) =>
-                  `flex items-center gap-4 px-3 py-2 rounded-md transition-all duration-200 ${
+                  `flex items-center gap-4 px-3 py-2 rounded-lg transition-all duration-200 ${
                     isActive
-                      ? "bg-[#FFA500] text-[#333333] font-semibold shadow-md"
-                      : "hover:bg-[#FFE4B5]/20 text-white"
+                      ? "bg-[#F56565] text-white font-semibold shadow-sm"
+                      : "hover:bg-[#4A5568] text-[#D1D8E3]"
                   }`
                 }
               >
@@ -66,7 +70,7 @@ export default function DashboardLayout() {
       </aside>
 
       {/* Main content */}
-      <main className="flex-1 bg-gradient-to-br from-[#FFF9F0] to-[#FFF1C6] p-6 overflow-y-auto">
+      <main className="flex-1 bg-[#E8EDF4] p-6 overflow-y-auto">
         <Outlet />
       </main>
     </div>

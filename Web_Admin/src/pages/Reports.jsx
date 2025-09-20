@@ -9,33 +9,33 @@ const getStatCardStyles = (title) => {
   switch (title) {
     case "Pending":
       return {
-        bgGradient: "bg-gradient-to-br from-[#F87171] to-[#DC2626]", // Warm deep red
-        iconBg: "bg-[#B91C1C]", // Dark red for icon
+        bgGradient: "bg-gradient-to-br from-[#E0E7FF] to-[#A9B9E7]", // Blue-gray gradient
+        iconBg: "bg-[#4A5568]", // Dark gray-blue for icon
       };
     case "Resolved":
       return {
-        bgGradient: "bg-gradient-to-br from-green-200 to-green-400", // Green for Resolved
-        iconBg: "bg-green-300",
+        bgGradient: "bg-gradient-to-br from-[#E0F3E0] to-[#A3D9A3]", // Green for Resolved
+        iconBg: "bg-[#2D8C2D]",
       };
     case "In Progress":
       return {
-        bgGradient: "bg-gradient-to-br from-orange-200 to-orange-400", // Orange for In Progress
-        iconBg: "bg-orange-300",
+        bgGradient: "bg-gradient-to-br from-[#FCE6DF] to-[#F5A9A7]", // Soft red-orange
+        iconBg: "bg-[#F56565]",
       };
     case "Rejected":
       return {
-        bgGradient: "bg-gradient-to-br from-gray-200 to-gray-400", // Gray for Rejected
-        iconBg: "bg-gray-300",
+        bgGradient: "bg-gradient-to-br from-[#F0F4F8] to-[#D9DEE3]", // Light gray for Rejected
+        iconBg: "bg-[#A0B0C0]",
       };
     case "Total Reports":
       return {
-        bgGradient: "bg-gradient-to-br from-purple-200 to-purple-400", // Purple for Total
-        iconBg: "bg-purple-300",
+        bgGradient: "bg-gradient-to-br from-[#E2E8F0] to-[#B8C4D4]", // Primary light gray-blue
+        iconBg: "bg-[#4A5568]", // Dark gray-blue for icon
       };
     default:
       return {
-        bgGradient: "bg-gradient-to-br from-gray-200 to-gray-400",
-        iconBg: "bg-gray-300",
+        bgGradient: "bg-gradient-to-br from-[#F0F4F8] to-[#D9DEE3]",
+        iconBg: "bg-[#A0B0C0]",
       };
   }
 };
@@ -172,7 +172,7 @@ export default function Reports() {
       } else {
         setMessage("No new reports.");
       }
-      setTimeout(() => setMessage(""), 5000); 
+      setTimeout(() => setMessage(""), 5000);
       setInitialReportCount(data.length);
     }
     setIsRefreshing(false);
@@ -271,15 +271,15 @@ export default function Reports() {
   const getStatusStyle = (status) => {
     switch (status) {
       case "Resolved":
-        return "bg-[#32CD32]/10 text-[#32CD32] px-2 py-1 rounded-lg text-sm";
+        return "bg-green-500/10 text-green-500 px-2 py-1 rounded-lg text-sm";
       case "In Progress":
-        return "bg-[#FFB347]/10 text-[#FFB347] px-2 py-1 rounded-lg text-sm";
+        return "bg-orange-500/10 text-orange-500 px-2 py-1 rounded-lg text-sm";
       case "Pending":
-        return "bg-[#FF4500]/10 text-[#FF4500] px-2 py-1 rounded-lg text-sm";
+        return "bg-red-500/10 text-red-500 px-2 py-1 rounded-lg text-sm";
       case "Rejected": // New rejected style
         return "bg-gray-500/10 text-gray-500 px-2 py-1 rounded-lg text-sm";
       default:
-        return "px-2 py-1 rounded-lg text-sm text-[#555]";
+        return "px-2 py-1 rounded-lg text-sm text-[#4A5568]";
     }
   };
 
@@ -423,8 +423,8 @@ export default function Reports() {
   };
 
   return (
-    <div className="min-h-screen p-6 bg-gradient-to-br from-[#FFF9F0] to-[#FFF1C6]">
-      <h1 className="text-3xl font-bold mb-6 text-[#333333]">
+    <div className="min-h-screen p-6 bg-[#E8EDF4]">
+      <h1 className="text-3xl font-bold mb-6 text-[#1A202C]">
         Reports Dashboard
       </h1>
 
@@ -474,7 +474,7 @@ export default function Reports() {
         <select
           value={categoryFilter}
           onChange={(e) => setCategoryFilter(e.target.value)}
-          className="border border-[#FFE4B5] rounded-lg p-2 bg-white shadow-sm"
+          className="border border-[#A0B0C0] rounded-lg p-2 bg-white shadow-sm"
         >
           <option value="All">All Categories</option>
           {[...new Set(reports.map((r) => r.issue_type))].map((c) => (
@@ -487,7 +487,7 @@ export default function Reports() {
         <select
           value={priorityFilter}
           onChange={(e) => setPriorityFilter(e.target.value)}
-          className="border border-[#FFE4B5] rounded-lg p-2 bg-white shadow-sm"
+          className="border border-[#A0B0C0] rounded-lg p-2 bg-white shadow-sm"
         >
           <option value="All">All Priorities</option>
           <option value="High">High</option>
@@ -511,7 +511,7 @@ export default function Reports() {
         <select
           value={sortBy}
           onChange={(e) => setSortBy(e.target.value)}
-          className="border border-[#FFE4B5] rounded-lg p-2 bg-white shadow-sm"
+          className="border border-[#A0B0C0] rounded-lg p-2 bg-white shadow-sm"
         >
           <option value="latest">Latest First</option>
           <option value="normal">Oldest First</option>
@@ -521,7 +521,7 @@ export default function Reports() {
           type="date"
           value={dateFilter}
           onChange={(e) => setDateFilter(e.target.value)}
-          className="border border-[#FFE4B5] rounded-lg p-2 bg-white shadow-sm"
+          className="border border-[#A0B0C0] rounded-lg p-2 bg-white shadow-sm"
         />
 
         <input
@@ -529,7 +529,7 @@ export default function Reports() {
           placeholder="Search by area..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="border border-[#FFE4B5] rounded-lg p-2 flex-1 min-w-[200px] bg-white shadow-sm"
+          className="border border-[#A0B0C0] rounded-lg p-2 flex-1 min-w-[200px] bg-white shadow-sm"
         />
 
         {/* Refresh Button */}
@@ -539,7 +539,7 @@ export default function Reports() {
           className={`px-4 py-2 rounded-lg shadow-sm font-semibold transition-colors ${
             isRefreshing
               ? "bg-gray-400 text-gray-700 cursor-not-allowed"
-              : "bg-orange-500 hover:bg-orange-600 text-white"
+              : "bg-[#4A5568] hover:bg-[#323a49] text-white"
           }`}
         >
           {isRefreshing ? "Refreshing..." : "Refresh Reports"}
@@ -547,9 +547,9 @@ export default function Reports() {
       </div>
 
       {/* Reports Table */}
-      <div className="bg-white shadow-lg rounded-2xl overflow-hidden border border-[#FFE4B5]">
-        <table className="w-full border-collapse text-[#333333]">
-          <thead className="bg-[#FFE4B5] text-left">
+      <div className="bg-white shadow-lg rounded-2xl overflow-hidden border border-[#A0B0C0]">
+        <table className="w-full border-collapse text-[#4A5568]">
+          <thead className="bg-[#E0E7F5] text-left">
             <tr>
               <th className="p-3">ID</th>
               <th className="p-3">Issue</th>
@@ -564,10 +564,10 @@ export default function Reports() {
               filteredReports.map((report, index) => (
                 <tr
                   key={report.id}
-                  className={`border-t border-[#FFE4B5] transition ${
+                  className={`border-t border-[#A0B0C0] transition ${
                     report.status === 'Resolved' && !report.feedback_read
                       ? 'bg-yellow-100 hover:bg-yellow-200'
-                      : 'hover:bg-[#FFF9F0]'
+                      : 'hover:bg-[#F0F4F8]'
                   }`}
                 >
                   <td className="p-3">
@@ -587,7 +587,7 @@ export default function Reports() {
                   <td className="p-3 text-center">
                     <button
                       onClick={() => handleSelectReport(report, index)}
-                      className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-1 rounded-xl shadow"
+                      className="bg-[#F56565] hover:bg-[#D64545] text-white px-4 py-1 rounded-xl shadow"
                     >
                       View
                     </button>
@@ -610,13 +610,13 @@ export default function Reports() {
 
       {selectedReport && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl shadow-xl p-6 max-w-4xl w-full max-h-[90vh] overflow-hidden animate-fadeIn border border-[#FFE4B5] flex">
+          <div className="bg-white rounded-2xl shadow-xl p-6 max-w-4xl w-full max-h-[90vh] overflow-hidden animate-fadeIn border border-[#A0B0C0] flex">
             {/* Left Column: Report Details */}
-            <div className="flex-1 p-4 border-r border-[#FFE4B5] overflow-y-auto">
-              <h2 className="text-xl font-bold mb-4 text-[#333333]">
+            <div className="flex-1 p-4 border-r border-[#A0B0C0] overflow-y-auto">
+              <h2 className="text-xl font-bold mb-4 text-[#1A202C]">
                 Report Details
               </h2>
-              <div className="space-y-2 text-[#555555]">
+              <div className="space-y-2 text-[#4A5568]">
                 <p><strong>ID:</strong> {selectedReport.sequenceId}</p>
                 <p><strong>Issue:</strong> {selectedReport.issue_type}</p>
                 <p><strong>Description:</strong> {selectedReport.description}</p>
@@ -637,11 +637,11 @@ export default function Reports() {
 
             {/* Right Column: Images, Actions, and Forms */}
             <div className="flex-1 p-4 overflow-y-auto">
-              <h2 className="text-xl font-bold mb-4 text-[#333333]">Actions & Media</h2>
+              <h2 className="text-xl font-bold mb-4 text-[#1A202C]">Actions & Media</h2>
 
               {/* Community Feedback */}
               <div className="mt-4 space-y-2">
-                <h3 className="text-lg font-semibold text-[#333333]">Community Feedback</h3>
+                <h3 className="text-lg font-semibold text-[#1A202C]">Community Feedback</h3>
                 <div className="flex justify-start items-center gap-4">
                   <p className="text-green-600 font-bold">
                     Affected: {selectedReport.affected_count || 0}
@@ -660,7 +660,7 @@ export default function Reports() {
               {/* User Uploaded Images */}
               {selectedReport.report_images?.length > 0 && (
                 <div className="mt-4">
-                  <label className="block font-semibold mb-1 text-[#333333]">
+                  <label className="block font-semibold mb-1 text-[#1A202C]">
                     User Uploaded Images
                   </label>
                   <div className="grid grid-cols-3 gap-2">
@@ -669,7 +669,7 @@ export default function Reports() {
                         <img
                           src={img.image_url}
                           alt={`User Image ${idx + 1}`}
-                          className="w-full h-24 object-cover rounded-lg border border-[#FFE4B5]"
+                          className="w-full h-24 object-cover rounded-lg border border-[#A0B0C0]"
                         />
                         <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition">
                           <button
@@ -688,7 +688,7 @@ export default function Reports() {
               {/* Admin Uploaded Images */}
               {selectedReport.admin_report_images?.length > 0 && (
                 <div className="mt-4">
-                  <label className="block font-semibold mb-1 text-[#333333]">
+                  <label className="block font-semibold mb-1 text-[#1A202C]">
                     Admin Uploaded Images
                   </label>
                   <div className="grid grid-cols-3 gap-2">
@@ -697,7 +697,7 @@ export default function Reports() {
                         <img
                           src={img.image_url}
                           alt={`Admin Image ${idx + 1}`}
-                          className="w-full h-24 object-cover rounded-lg border border-[#FFE4B5]"
+                          className="w-full h-24 object-cover rounded-lg border border-[#A0B0C0]"
                         />
                         <div className="absolute inset-0 flex items-center justify-center gap-3 bg-black/40 opacity-0 group-hover:opacity-100 transition">
                           <button
@@ -722,7 +722,7 @@ export default function Reports() {
               <div className="mt-4 space-y-4">
                 {/* Update Status */}
                 <div>
-                  <label className="block font-semibold mb-1 text-[#333333]">
+                  <label className="block font-semibold mb-1 text-[#1A202C]">
                     Update Status
                   </label>
                   <select
@@ -733,7 +733,7 @@ export default function Reports() {
                         status: e.target.value,
                       })
                     }
-                    className="border border-[#FFE4B5] rounded-lg p-2 w-full"
+                    className="border border-[#A0B0C0] rounded-lg p-2 w-full"
                   >
                     <option value="Pending">Pending</option>
                     <option value="In Progress">In Progress</option>
@@ -744,7 +744,7 @@ export default function Reports() {
 
                 {/* Admin can change priority */}
                 <div>
-                  <label className="block font-semibold mb-1 text-[#333333]">
+                  <label className="block font-semibold mb-1 text-[#1A202C]">
                     Update Priority
                   </label>
                   <select
@@ -755,7 +755,7 @@ export default function Reports() {
                         priority: e.target.value,
                       })
                     }
-                    className="border border-[#FFE4B5] rounded-lg p-2 w-full"
+                    className="border border-[#A0B0C0] rounded-lg p-2 w-full"
                   >
                     <option value="Low">Low</option>
                     <option value="Medium">Medium</option>
@@ -768,7 +768,7 @@ export default function Reports() {
                   <>
                     {/* Department Selection */}
                     <div>
-                      <label className="block font-semibold mb-1 text-[#333333]">
+                      <label className="block font-semibold mb-1 text-[#1A202C]">
                         Assign to Department
                         {/* New suggested department message */}
                         {!selectedReport.assigned_to_dept && (
@@ -781,7 +781,7 @@ export default function Reports() {
                         value={selectedDept}
                         onChange={(e) => setSelectedDept(e.target.value)}
                         onFocus={() => setMessage("")}
-                        className="border border-[#FFE4B5] rounded-lg p-2 w-full"
+                        className="border border-[#A0B0C0] rounded-lg p-2 w-full"
                       >
                         <option value="">Select Department</option>
                         {departments.map((dept) => (
@@ -792,7 +792,7 @@ export default function Reports() {
 
                     {/* Upload Admin Photo */}
                     <div className="mt-3">
-                      <label className="block font-semibold mb-1 text-[#333333]">
+                      <label className="block font-semibold mb-1 text-[#1A202C]">
                         Upload Admin Photo
                       </label>
                       <input
@@ -802,7 +802,7 @@ export default function Reports() {
                           const file = e.target.files[0];
                           if (file) handleAdminUpload(file);
                         }}
-                        className="border border-[#FFE4B5] rounded-lg p-2 w-full"
+                        className="border border-[#A0B0C0] rounded-lg p-2 w-full"
                       />
                     </div>
                   </>
@@ -811,7 +811,7 @@ export default function Reports() {
                 {/* Remarks are now required for rejection */}
                 {["In Progress","Rejected", "Resolved"].includes(selectedReport.status) && (
                   <div>
-                    <label className="block font-semibold mb-1 text-[#333333]">
+                    <label className="block font-semibold mb-1 text-[#1A202C]">
                       Remarks
                     </label>
                     <textarea
@@ -822,7 +822,7 @@ export default function Reports() {
                           admin_remark: e.target.value,
                         })
                       }
-                      className="border border-[#FFE4B5] rounded-lg p-2 w-full"
+                      className="border border-[#A0B0C0] rounded-lg p-2 w-full"
                       rows="3"
                       placeholder="Add remarks..."
                     />
@@ -849,7 +849,7 @@ export default function Reports() {
                 </button>
                 <button
                   onClick={handleSaveChanges}
-                  className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-xl shadow"
+                  className="bg-[#F56565] hover:bg-[#D64545] text-white px-4 py-2 rounded-xl shadow"
                 >
                   Save Changes
                 </button>
@@ -864,7 +864,7 @@ export default function Reports() {
           <img
             src={imagePreview}
             alt="Preview"
-            className="max-w-[90%] max-h-[90%] rounded-xl shadow-lg border border-[#FFE4B5]"
+            className="max-w-[90%] max-h-[90%] rounded-xl shadow-lg border border-[#A0B0C0]"
           />
           <button
             onClick={() => setImagePreview(null)}

@@ -28,13 +28,13 @@ export default function Exporting() {
   const getStatusStyle = (status) => {
     switch (status) {
       case "Resolved":
-        return "bg-[#32CD32]/10 text-[#32CD32] px-2 py-1 rounded-lg text-sm";
+        return "bg-green-500/10 text-green-500 px-2 py-1 rounded-lg text-sm";
       case "In Progress":
-        return "bg-[#FFB347]/10 text-[#FFB347] px-2 py-1 rounded-lg text-sm";
+        return "bg-orange-500/10 text-orange-500 px-2 py-1 rounded-lg text-sm";
       case "Pending":
-        return "bg-[#FF4500]/10 text-[#FF4500] px-2 py-1 rounded-lg text-sm";
+        return "bg-red-500/10 text-red-500 px-2 py-1 rounded-lg text-sm";
       default:
-        return "px-2 py-1 rounded-lg text-sm text-[#555]";
+        return "px-2 py-1 rounded-lg text-sm text-[#4A5568]";
     }
   };
 
@@ -229,8 +229,8 @@ export default function Exporting() {
   };
 
   return (
-    <div className="min-h-screen p-6 bg-gradient-to-br from-[#FFF9F0] to-[#FFF1C6]">
-      <h1 className="text-3xl font-bold mb-6 text-[#333]">
+    <div className="min-h-screen p-6 bg-[#E8EDF4]">
+      <h1 className="text-3xl font-bold mb-6 text-[#1A202C]">
         Exporting & Integrations
       </h1>
 
@@ -239,7 +239,7 @@ export default function Exporting() {
         <select
           value={categoryFilter}
           onChange={(e) => setCategoryFilter(e.target.value)}
-          className="border border-[#FFE4B5] rounded-lg p-2 bg-white shadow-sm text-[#555]"
+          className="border border-[#A0B0C0] rounded-lg p-2 bg-white shadow-sm text-[#4A5568]"
         >
           <option value="All">All Categories</option>
           {[...new Set(reports.map((r) => r.issue_type))].map((c) => (
@@ -249,10 +249,10 @@ export default function Exporting() {
           ))}
         </select>
 
-        {/* <select
+        <select
           value={areaFilter}
           onChange={(e) => setAreaFilter(e.target.value)}
-          className="border border-[#FFE4B5] rounded-lg p-2 bg-white shadow-sm text-[#555]"
+          className="border border-[#A0B0C0] rounded-lg px-2 py-1 bg-white shadow-sm text-[#4A5568] w-48 overflow-hidden text-ellipsis"
         >
           <option value="All">All Areas</option>
           {[...new Set(reports.map((r) => r.location))].map((a) => (
@@ -260,36 +260,12 @@ export default function Exporting() {
               {a}
             </option>
           ))}
-        </select> */}
-        {/* <select
-          value={areaFilter}
-          onChange={(e) => setAreaFilter(e.target.value)}
-          className="border border-[#FFE4B5] rounded-lg px-2 py-1 bg-white shadow-sm text-[#555] w-auto"
-        >
-          <option value="All">All Areas</option>
-          {[...new Set(reports.map((r) => r.location))].map((a) => (
-            <option key={a} value={a}>
-              {a}
-            </option>
-          ))}
-        </select> */}
-<select
-  value={areaFilter}
-  onChange={(e) => setAreaFilter(e.target.value)}
-  className="border border-[#FFE4B5] rounded-lg px-2 py-1 bg-white shadow-sm text-[#555] w-48 overflow-hidden text-ellipsis"
->
-  <option value="All">All Areas</option>
-  {[...new Set(reports.map((r) => r.location))].map((a) => (
-    <option key={a} value={a}>
-      {a}
-    </option>
-  ))}
-</select>
+        </select>
 
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
-          className="border border-[#FFE4B5] rounded-lg p-2 bg-white shadow-sm text-[#555]"
+          className="border border-[#A0B0C0] rounded-lg p-2 bg-white shadow-sm text-[#4A5568]"
         >
           <option value="All">All Status</option>
           {[...new Set(reports.map((r) => r.status))].map((s) => (
@@ -304,14 +280,14 @@ export default function Exporting() {
           placeholder="Search by area..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="border border-[#FFE4B5] rounded-lg p-2 flex-1 min-w-[200px] bg-white shadow-sm text-[#555]"
+          className="border border-[#A0B0C0] rounded-lg p-2 flex-1 min-w-[200px] bg-white shadow-sm text-[#4A5568]"
         />
       </div>
 
       {/* Table */}
-      <div className="bg-white shadow-lg rounded-2xl overflow-hidden mb-6">
-        <table className="w-full border-collapse text-[#333]">
-          <thead className="bg-[#FFE4B5] text-left">
+      <div className="bg-white shadow-lg rounded-2xl overflow-hidden mb-6 border border-[#A0B0C0]">
+        <table className="w-full border-collapse text-[#4A5568]">
+          <thead className="bg-[#E0E7F5] text-left">
             <tr>
               <th className="p-3">Select</th>
               <th className="p-3">ID</th>
@@ -328,7 +304,7 @@ export default function Exporting() {
               filteredReports.map((r, index) => (
                 <tr
                   key={r.id}
-                  className="border-t border-[#FFE4B5] hover:bg-[#FFF9F0] transition"
+                  className="border-t border-[#A0B0C0] hover:bg-[#F0F4F8] transition"
                 >
                   <td className="p-3">
                     <input
@@ -354,7 +330,7 @@ export default function Exporting() {
               <tr>
                 <td
                   colSpan="8"
-                  className="p-4 text-center text-[#555] italic"
+                  className="p-4 text-center text-[#4A5568] italic"
                 >
                   No reports match filters.
                 </td>
@@ -366,7 +342,7 @@ export default function Exporting() {
 
       {/* Actions */}
       {selectedReports.length > 0 && (
-        <p className="mb-4 text-[#555] font-medium">
+        <p className="mb-4 text-[#4A5568] font-medium">
           {selectedReports.length} report(s) selected.
         </p>
       )}
@@ -374,19 +350,19 @@ export default function Exporting() {
       <div className="flex gap-4 mb-6">
         <button
           onClick={handleExportCSV}
-          className="bg-[#FFA500] hover:bg-[#e59400] text-white px-4 py-2 rounded-xl shadow"
+          className="bg-[#4A5568] hover:bg-[#323a49] text-white px-4 py-2 rounded-xl shadow"
         >
           Export {selectedReports.length > 0 ? "Selected" : "All"} CSV
         </button>
         <button
           onClick={handleExportPDF}
-          className="bg-[#32CD32] hover:bg-green-600 text-white px-4 py-2 rounded-xl shadow"
+          className="bg-[#2D8C2D] hover:bg-green-600 text-white px-4 py-2 rounded-xl shadow"
         >
           Export {selectedReports.length > 0 ? "Selected" : "All"} PDF
         </button>
         <button
           onClick={handleGenerateAIReport}
-          className="bg-[#FF4500] hover:bg-[#d93c00] text-white px-4 py-2 rounded-xl shadow"
+          className="bg-[#F56565] hover:bg-[#D64545] text-white px-4 py-2 rounded-xl shadow"
         >
           {loading
             ? "Generating..."
@@ -396,14 +372,14 @@ export default function Exporting() {
 
       {/* AI Report */}
       {aiReport && (
-        <div className="bg-white shadow-md p-4 rounded-xl">
-          <h2 className="text-xl font-semibold mb-2 text-[#333]">
+        <div className="bg-white shadow-md p-4 rounded-xl border border-[#A0B0C0]">
+          <h2 className="text-xl font-semibold mb-2 text-[#1A202C]">
             AI Generated Report
           </h2>
-          <p className="whitespace-pre-line text-[#555]">{aiReport}</p>
+          <p className="whitespace-pre-line text-[#4A5568]">{aiReport}</p>
           <button
             onClick={handleDownloadAIReport}
-            className="mt-4 bg-[#FFA500] hover:bg-[#e59400] text-white px-4 py-2 rounded-xl shadow"
+            className="mt-4 bg-[#F56565] hover:bg-[#D64545] text-white px-4 py-2 rounded-xl shadow"
           >
             Download AI Report (PDF)
           </button>

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "../supabaseClient";
-import { Eye, Edit3, PlusCircle, X } from "lucide-react"; 
+import { Eye, Edit3, PlusCircle, X } from "lucide-react";
 import { AlertCircle, CheckCircle, Clock, Flame, XCircle } from "lucide-react"; // Import icons for KPI cards
 
 // Helper function to return the correct gradient and icon styles for the StatCard
@@ -8,33 +8,33 @@ const getStatCardStyles = (title) => {
   switch (title) {
     case "Pending":
       return {
-        bgGradient: "bg-gradient-to-br from-[#F87171] to-[#DC2626]", // Warm deep red
-        iconBg: "bg-[#B91C1C]", // Dark red for icon
+        bgGradient: "bg-gradient-to-br from-[#E0E7FF] to-[#A9B9E7]", // Blue-gray gradient
+        iconBg: "bg-[#4A5568]", // Dark gray-blue for icon
       };
     case "Resolved":
       return {
-        bgGradient: "bg-gradient-to-br from-green-200 to-green-400", // Green for Resolved
-        iconBg: "bg-green-300",
+        bgGradient: "bg-gradient-to-br from-[#E0F3E0] to-[#A3D9A3]", // Soft green
+        iconBg: "bg-[#2D8C2D]",
       };
     case "In Progress":
       return {
-        bgGradient: "bg-gradient-to-br from-orange-200 to-orange-400", // Orange for In Progress
-        iconBg: "bg-orange-300",
+        bgGradient: "bg-gradient-to-br from-[#FCE6DF] to-[#F5A9A7]", // Soft red-orange
+        iconBg: "bg-[#F56565]",
       };
     case "Rejected":
       return {
-        bgGradient: "bg-gradient-to-br from-gray-200 to-gray-400", // Gray for Rejected
-        iconBg: "bg-gray-300",
+        bgGradient: "bg-gradient-to-br from-[#F0F4F8] to-[#D9DEE3]", // Light gray for Rejected
+        iconBg: "bg-[#A0B0C0]",
       };
     case "Total Reports":
       return {
-        bgGradient: "bg-gradient-to-br from-purple-200 to-purple-400", // Purple for Total
-        iconBg: "bg-purple-300",
+        bgGradient: "bg-gradient-to-br from-[#E2E8F0] to-[#B8C4D4]", // Primary light gray-blue
+        iconBg: "bg-[#4A5568]",
       };
     default:
       return {
-        bgGradient: "bg-gradient-to-br from-gray-200 to-gray-400",
-        iconBg: "bg-gray-300",
+        bgGradient: "bg-gradient-to-br from-[#F0F4F8] to-[#D9DEE3]",
+        iconBg: "bg-[#A0B0C0]",
       };
   }
 };
@@ -188,8 +188,8 @@ export default function DepartmentReports() {
   };
 
   return (
-    <div className="min-h-screen p-6 bg-gradient-to-br from-[#FFF9F0] to-[#FFF1C6]">
-      <h1 className="text-3xl font-bold mb-6 text-[#333333]">
+    <div className="min-h-screen p-6 bg-[#E8EDF4]">
+      <h1 className="text-3xl font-bold mb-6 text-[#1A202C]">
         {selectedDept} – Reports
       </h1>
 
@@ -239,7 +239,7 @@ export default function DepartmentReports() {
         <select
           value={selectedDept}
           onChange={(e) => setSelectedDept(e.target.value)}
-          className="border border-[#FFE4B5] rounded-lg p-2 bg-white shadow-sm"
+          className="border border-[#A0B0C0] rounded-lg p-2 bg-white shadow-sm"
         >
           {departments.map((dept) => (
             <option key={dept} value={dept}>
@@ -251,7 +251,7 @@ export default function DepartmentReports() {
         <select
           value={filters.priority}
           onChange={(e) => setFilters({ ...filters, priority: e.target.value })}
-          className="border border-[#FFE4B5] rounded-lg p-2 bg-white shadow-sm"
+          className="border border-[#A0B0C0] rounded-lg p-2 bg-white shadow-sm"
         >
           <option value="">All Priorities</option>
           <option value="High">High</option>
@@ -262,7 +262,7 @@ export default function DepartmentReports() {
         <select
           value={filters.status}
           onChange={(e) => setFilters({ ...filters, status: e.target.value })}
-          className="border border-[#FFE4B5] rounded-lg p-2 bg-white shadow-sm"
+          className="border border-[#A0B0C0] rounded-lg p-2 bg-white shadow-sm"
         >
           <option value="">All Status</option>
           <option value="Pending">Pending</option>
@@ -276,9 +276,9 @@ export default function DepartmentReports() {
       {loading ? (
         <p>Loading reports...</p>
       ) : filteredReports.length > 0 ? (
-        <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-[#FFE4B5]">
-          <table className="w-full border-collapse text-[#333333]">
-            <thead className="bg-[#FFE4B5] text-left">
+        <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-[#A0B0C0]">
+          <table className="w-full border-collapse text-[#4A5568]">
+            <thead className="bg-[#E0E7F5] text-left">
               <tr>
                 <th className="p-3">ID</th>
                 <th className="p-3">Issue</th>
@@ -295,7 +295,7 @@ export default function DepartmentReports() {
                 return (
                   <tr
                     key={report.id}
-                    className="border-t border-[#FFE4B5] hover:bg-[#FFF9F0] transition"
+                    className="border-t border-[#A0B0C0] hover:bg-[#F0F4F8] transition"
                   >
                     <td className="p-3">{index + 1}</td>
                     <td className="p-3">{report.issue_type}</td>
@@ -309,7 +309,7 @@ export default function DepartmentReports() {
                             setViewTaskText(task.task_description);
                             setViewTaskModal(true);
                           }}
-                          className="flex items-center gap-1 bg-[#FFA500] hover:bg-[#e69500] text-white px-3 py-1 rounded-lg shadow transition"
+                          className="flex items-center gap-1 bg-[#4A5568] hover:bg-[#323a49] text-white px-3 py-1 rounded-lg shadow transition"
                         >
                           <Eye size={16} /> View
                         </button>
@@ -325,7 +325,7 @@ export default function DepartmentReports() {
                           setEditMode(!!task);
                           setShowModal(true);
                         }}
-                        className="flex items-center gap-1 bg-[#ea3313] hover:bg-[#971400] text-white px-3 py-1 rounded-lg shadow transition"
+                        className="flex items-center gap-1 bg-[#F56565] hover:bg-[#D64545] text-white px-3 py-1 rounded-lg shadow transition"
                       >
                         {task ? <Edit3 size={16} /> : <PlusCircle size={16} />}
                         {task ? "Edit Task" : "Assign Task"}
@@ -344,15 +344,15 @@ export default function DepartmentReports() {
       {/* Modal for Assign/Edit Task */}
       {showModal && (
         <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
-          <div className="bg-white p-6 rounded-2xl shadow-lg w-96">
-            <h2 className="text-xl font-bold mb-4">
+          <div className="bg-white p-6 rounded-2xl shadow-lg w-96 border border-[#A0B0C0]">
+            <h2 className="text-xl font-bold mb-4 text-[#1A202C]">
               {editMode ? "Edit Task" : "Assign Task"}
             </h2>
             <textarea
               value={taskDescription}
               onChange={(e) => setTaskDescription(e.target.value)}
               placeholder="Enter task details..."
-              className="w-full p-2 border rounded-lg mb-4"
+              className="w-full p-2 border border-[#A0B0C0] rounded-lg mb-4 text-[#4A5568]"
               rows={3}
             />
             <div className="flex justify-end space-x-3">
@@ -362,13 +362,13 @@ export default function DepartmentReports() {
                   setTaskDescription("");
                   setEditMode(false);
                 }}
-                className="flex items-center gap-1 px-4 py-2 rounded-lg bg-gray-300 hover:bg-gray-400"
+                className="flex items-center gap-1 px-4 py-2 rounded-lg bg-[#E2E8F0] hover:bg-[#D1D8E3] text-[#4A5568]"
               >
                 <X size={16} /> Cancel
               </button>
               <button
                 onClick={handleSaveTask}
-                className="flex items-center gap-1 px-4 py-2 rounded-lg bg-green-500 text-white hover:bg-green-600"
+                className="flex items-center gap-1 px-4 py-2 rounded-lg bg-[#2D8C2D] text-white hover:bg-[#206620]"
               >
                 {editMode ? <Edit3 size={16} /> : <PlusCircle size={16} />}
                 {editMode ? "Update" : "Assign"}
@@ -381,13 +381,13 @@ export default function DepartmentReports() {
       {/* Modal for Viewing Task */}
       {viewTaskModal && (
         <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
-          <div className="bg-white p-6 rounded-2xl shadow-lg w-96">
-            <h2 className="text-xl font-bold mb-4">Task Details</h2>
-            <p className="text-gray-700 mb-4 whitespace-pre-line">{viewTaskText}</p>
+          <div className="bg-white p-6 rounded-2xl shadow-lg w-96 border border-[#A0B0C0]">
+            <h2 className="text-xl font-bold mb-4 text-[#1A202C]">Task Details</h2>
+            <p className="text-[#4A5568] mb-4 whitespace-pre-line">{viewTaskText}</p>
             <div className="flex justify-end">
               <button
                 onClick={() => setViewTaskModal(false)}
-                className="flex items-center gap-1 px-4 py-2 rounded-lg bg-[#FF6347] text-white hover:bg-[#e5533d]"
+                className="flex items-center gap-1 px-4 py-2 rounded-lg bg-[#F56565] text-white hover:bg-[#D64545]"
               >
                 <X size={16} /> Close
               </button>

@@ -54,11 +54,11 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#FFF9F0] to-[#FFF1C6] p-6">
-      <div className="w-full max-w-4xl bg-white shadow-xl rounded-2xl overflow-hidden flex">
+    <div className="min-h-screen flex items-center justify-center bg-[#E8EDF4] p-6">
+      <div className="w-full max-w-4xl bg-white shadow-xl rounded-2xl overflow-hidden flex border border-[#A0B0C0]">
         
         {/* Left side - Image */}
-        <div className="hidden md:flex w-1/2 bg-gradient-to-br from-[#c8c0ae] to-[#ffffff] items-center justify-center p-6">
+        <div className="hidden md:flex w-1/2 bg-gradient-to-br from-[#F0F4F8] to-[#FFFFFF] items-center justify-center p-6">
           <img
             src="./logo.png" // 👉 put your image inside public/ folder
             alt="Login Illustration"
@@ -68,24 +68,24 @@ const LoginPage = () => {
 
         {/* Right side - Form */}
         <div className="w-full md:w-1/2 p-8 flex flex-col justify-center">
-          <h2 className="text-3xl font-bold text-center mb-6 text-[#333333]">
+          <h2 className="text-3xl font-bold text-center mb-6 text-[#1A202C]">
             Admin Login
           </h2>
 
           {error && (
-            <div className="bg-[#FF4500]/10 text-[#FF4500] text-sm p-2 rounded mb-4 border border-[#FF4500]/20">
+            <div className="bg-[#F56565]/10 text-[#F56565] text-sm p-2 rounded mb-4 border border-[#F56565]/20">
               {error}
             </div>
           )}
 
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium mb-1 text-[#555555]">
+              <label className="block text-sm font-medium mb-1 text-[#4A5568]">
                 Email
               </label>
               <input
                 type="email"
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#FFA500]"
+                className="w-full border border-[#A0B0C0] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#F56565]"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="admin@example.com"
@@ -94,12 +94,12 @@ const LoginPage = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1 text-[#555555]">
+              <label className="block text-sm font-medium mb-1 text-[#4A5568]">
                 Password
               </label>
               <input
                 type="password"
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#FFA500]"
+                className="w-full border border-[#A0B0C0] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#F56565]"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
@@ -110,7 +110,7 @@ const LoginPage = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-[#FFA500] text-white py-2 rounded-lg font-medium hover:bg-[#e59400] transition"
+              className="w-full bg-[#F56565] text-white py-2 rounded-lg font-medium hover:bg-[#D64545] transition"
             >
               {loading ? "Logging in..." : "Login"}
             </button>
