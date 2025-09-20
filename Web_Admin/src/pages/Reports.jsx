@@ -166,39 +166,39 @@ export default function Reports() {
     } else if (data) {
       setReports(assignPriorityByLocation(data));
 
-      // Check for new reports and display a message
+      // Corrected logic for notifications
       if (data.length > initialReportCount) {
         setMessage("✅ New report added!");
-        setInitialReportCount(data.length);
       } else {
         setMessage("No new reports.");
       }
-      setTimeout(() => setMessage(""), 5000);
+      setTimeout(() => setMessage(""), 5000); 
+      setInitialReportCount(data.length);
     }
     setIsRefreshing(false);
   };
 
   // Initial data fetch
   useEffect(() => {
-    const fetchInitialReports = async () => {
-        const { data, error } = await supabase
-          .from("reports")
-          .select(`
-            *,
-            report_images ( image_url ),
-            admin_report_images ( image_url, uploaded_by )
-          `);
+      const fetchInitialReports = async () => {
+          const { data, error } = await supabase
+            .from("reports")
+            .select(`
+              *,
+              report_images ( image_url ),
+              admin_report_images ( image_url, uploaded_by )
+            `);
 
-        if (error) {
-          console.error("❌ Error fetching reports:", error.message);
-          // Don't set reports state if there's an error
-        } else if (data) {
-          setReports(assignPriorityByLocation(data));
-          setInitialReportCount(data.length); // Set initial count
-        }
-      };
+          if (error) {
+            console.error("❌ Error fetching reports:", error.message);
+            // Don't set reports state if there's an error
+          } else if (data) {
+            setReports(assignPriorityByLocation(data));
+            setInitialReportCount(data.length); // Set initial count
+          }
+        };
 
-      fetchInitialReports();
+        fetchInitialReports();
   }, []);
 
   // New useEffect hook to mark feedback as read when the admin views a resolved report
@@ -284,44 +284,43 @@ export default function Reports() {
   };
 
   // Save changes to Supabase
-// Save changes to Supabase
-const handleSaveChanges = async () => {
-  if (!selectedReport) return;
+  const handleSaveChanges = async () => {
+    if (!selectedReport) return;
 
-  const requiresDept = ["In Progress", "Resolved"].includes(selectedReport.status);
-  const requiresRemark = ["In Progress", "Resolved", "Rejected"].includes(selectedReport.status);
+    const requiresDept = ["In Progress", "Resolved"].includes(selectedReport.status);
+    const requiresRemark = ["In Progress", "Resolved", "Rejected"].includes(selectedReport.status);
 
-  if (requiresDept && !selectedDept) {
-    setMessage("Please select a department.");
-    return;
-  }
+    if (requiresDept && !selectedDept) {
+      setMessage("Please select a department.");
+      return;
+    }
 
-  // New condition to check for a remark
-  if (requiresRemark && !selectedReport.admin_remark) {
-    setMessage("Please add a remark before saving changes.");
-    return;
-  }
+    // New condition to check for a remark
+    if (requiresRemark && !selectedReport.admin_remark) {
+      setMessage("Please add a remark before saving changes.");
+      return;
+    }
 
-  const { error } = await supabase
-    .from("reports")
-    .update({
-      status: selectedReport.status,
-      admin_remark: selectedReport.admin_remark,
-      priority: selectedReport.priority,
-      assigned_to_dept: selectedDept,
-    })
-    .eq("id", selectedReport.id);
+    const { error } = await supabase
+      .from("reports")
+      .update({
+        status: selectedReport.status,
+        admin_remark: selectedReport.admin_remark,
+        priority: selectedReport.priority,
+        assigned_to_dept: selectedDept,
+      })
+      .eq("id", selectedReport.id);
 
-  if (error) {
-    console.error("❌ Error updating report:", error.message);
-    setMessage("❌ Failed to save changes.");
-  } else {
-    await fetchReports();
-    setSelectedReport(null);
-    setSelectedDept("");
-    setMessage("✅ Changes saved successfully!");
-  }
-};
+    if (error) {
+      console.error("❌ Error updating report:", error.message);
+      setMessage("❌ Failed to save changes.");
+    } else {
+      await fetchReports();
+      setSelectedReport(null);
+      setSelectedDept("");
+      setMessage("✅ Changes saved successfully!");
+    }
+  };
 
   // Handle report rejection
   const handleRejectReport = async () => {
@@ -609,256 +608,256 @@ const handleSaveChanges = async () => {
         </table>
       </div>
 
-{selectedReport && (
-  <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-    <div className="bg-white rounded-2xl shadow-xl p-6 max-w-4xl w-full max-h-[90vh] overflow-hidden animate-fadeIn border border-[#FFE4B5] flex">
-      {/* Left Column: Report Details */}
-      <div className="flex-1 p-4 border-r border-[#FFE4B5] overflow-y-auto">
-        <h2 className="text-xl font-bold mb-4 text-[#333333]">
-          Report Details
-        </h2>
-        <div className="space-y-2 text-[#555555]">
-          <p><strong>ID:</strong> {selectedReport.sequenceId}</p>
-          <p><strong>Issue:</strong> {selectedReport.issue_type}</p>
-          <p><strong>Description:</strong> {selectedReport.description}</p>
-          <p><strong>Location:</strong> {selectedReport.location}</p>
-          <p><strong>Priority:</strong> {selectedReport.priority}</p>
-          <p><strong>Reporter:</strong> {selectedReport.reporter_name}</p>
-          <p><strong>Email:</strong> {selectedReport.reporter_email}</p>
-          <p><strong>Submitted:</strong> {selectedReport.created_at}</p>
-          <p><strong>Remarks:</strong> {selectedReport.admin_remark || "N/A"}</p>
-          <p>
-            <strong>Status:</strong>{" "}
-            <span className={getStatusStyle(selectedReport.status)}>
-              {selectedReport.status}
-            </span>
-          </p>
-        </div>
-      </div>
+      {selectedReport && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl shadow-xl p-6 max-w-4xl w-full max-h-[90vh] overflow-hidden animate-fadeIn border border-[#FFE4B5] flex">
+            {/* Left Column: Report Details */}
+            <div className="flex-1 p-4 border-r border-[#FFE4B5] overflow-y-auto">
+              <h2 className="text-xl font-bold mb-4 text-[#333333]">
+                Report Details
+              </h2>
+              <div className="space-y-2 text-[#555555]">
+                <p><strong>ID:</strong> {selectedReport.sequenceId}</p>
+                <p><strong>Issue:</strong> {selectedReport.issue_type}</p>
+                <p><strong>Description:</strong> {selectedReport.description}</p>
+                <p><strong>Location:</strong> {selectedReport.location}</p>
+                <p><strong>Priority:</strong> {selectedReport.priority}</p>
+                <p><strong>Reporter:</strong> {selectedReport.reporter_name}</p>
+                <p><strong>Email:</strong> {selectedReport.reporter_email}</p>
+                <p><strong>Submitted:</strong> {selectedReport.created_at}</p>
+                <p><strong>Remarks:</strong> {selectedReport.admin_remark || "N/A"}</p>
+                <p>
+                  <strong>Status:</strong>{" "}
+                  <span className={getStatusStyle(selectedReport.status)}>
+                    {selectedReport.status}
+                  </span>
+                </p>
+              </div>
+            </div>
 
-      {/* Right Column: Images, Actions, and Forms */}
-      <div className="flex-1 p-4 overflow-y-auto">
-        <h2 className="text-xl font-bold mb-4 text-[#333333]">Actions & Media</h2>
-        
-        {/* Community Feedback */}
-        <div className="mt-4 space-y-2">
-          <h3 className="text-lg font-semibold text-[#333333]">Community Feedback</h3>
-          <div className="flex justify-start items-center gap-4">
-            <p className="text-green-600 font-bold">
-              Affected: {selectedReport.affected_count || 0}
-            </p>
-            <p className="text-red-600 font-bold">
-              False: {selectedReport.false_count || 0}
-            </p>
-          </div>
-          {selectedReport.status === "Resolved" && (
-            <p className="mt-2">
-              <strong>User Feedback:</strong> {selectedReport.user_feedback || "N/A"}
-            </p>
-          )}
-        </div>
-        
-        {/* User Uploaded Images */}
-        {selectedReport.report_images?.length > 0 && (
-          <div className="mt-4">
-            <label className="block font-semibold mb-1 text-[#333333]">
-              User Uploaded Images
-            </label>
-            <div className="grid grid-cols-3 gap-2">
-              {selectedReport.report_images.map((img, idx) => (
-                <div key={idx} className="relative group">
-                  <img
-                    src={img.image_url}
-                    alt={`User Image ${idx + 1}`}
-                    className="w-full h-24 object-cover rounded-lg border border-[#FFE4B5]"
-                  />
-                  <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition">
-                    <button
-                      onClick={() => setImagePreview(img.image_url)}
-                      className="text-white text-xl"
-                    >
-                      👁
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
+            {/* Right Column: Images, Actions, and Forms */}
+            <div className="flex-1 p-4 overflow-y-auto">
+              <h2 className="text-xl font-bold mb-4 text-[#333333]">Actions & Media</h2>
 
-        {/* Admin Uploaded Images */}
-        {selectedReport.admin_report_images?.length > 0 && (
-          <div className="mt-4">
-            <label className="block font-semibold mb-1 text-[#333333]">
-              Admin Uploaded Images
-            </label>
-            <div className="grid grid-cols-3 gap-2">
-              {selectedReport.admin_report_images.map((img, idx) => (
-                <div key={idx} className="relative group">
-                  <img
-                    src={img.image_url}
-                    alt={`Admin Image ${idx + 1}`}
-                    className="w-full h-24 object-cover rounded-lg border border-[#FFE4B5]"
-                  />
-                  <div className="absolute inset-0 flex items-center justify-center gap-3 bg-black/40 opacity-0 group-hover:opacity-100 transition">
-                    <button
-                      onClick={() => setImagePreview(img.image_url)}
-                      className="text-white text-xl"
-                    >
-                      👁
-                    </button>
-                    <button
-                      onClick={() => handleDeleteAdminImage(img.image_url)}
-                      className="text-red-500 text-xl"
-                    >
-                      🗑
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
+              {/* Community Feedback */}
+              <div className="mt-4 space-y-2">
+                <h3 className="text-lg font-semibold text-[#333333]">Community Feedback</h3>
+                <div className="flex justify-start items-center gap-4">
+                  <p className="text-green-600 font-bold">
+                    Affected: {selectedReport.affected_count || 0}
+                  </p>
+                  <p className="text-red-600 font-bold">
+                    False: {selectedReport.false_count || 0}
+                  </p>
+                </div>
+                {selectedReport.status === "Resolved" && (
+                  <p className="mt-2">
+                    <strong>User Feedback:</strong> {selectedReport.user_feedback || "N/A"}
+                  </p>
+                )}
+              </div>
 
-        <div className="mt-4 space-y-4">
-          {/* Update Status */}
-          <div>
-            <label className="block font-semibold mb-1 text-[#333333]">
-              Update Status
-            </label>
-            <select
-              value={selectedReport.status}
-              onChange={(e) =>
-                setSelectedReport({
-                  ...selectedReport,
-                  status: e.target.value,
-                })
-              }
-              className="border border-[#FFE4B5] rounded-lg p-2 w-full"
-            >
-              <option value="Pending">Pending</option>
-              <option value="In Progress">In Progress</option>
-              <option value="Resolved">Resolved</option>
-              <option value="Rejected">Rejected</option>
-            </select>
-          </div>
+              {/* User Uploaded Images */}
+              {selectedReport.report_images?.length > 0 && (
+                <div className="mt-4">
+                  <label className="block font-semibold mb-1 text-[#333333]">
+                    User Uploaded Images
+                  </label>
+                  <div className="grid grid-cols-3 gap-2">
+                    {selectedReport.report_images.map((img, idx) => (
+                      <div key={idx} className="relative group">
+                        <img
+                          src={img.image_url}
+                          alt={`User Image ${idx + 1}`}
+                          className="w-full h-24 object-cover rounded-lg border border-[#FFE4B5]"
+                        />
+                        <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition">
+                          <button
+                            onClick={() => setImagePreview(img.image_url)}
+                            className="text-white text-xl"
+                          >
+                            👁
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
-          {/* Admin can change priority */}
-          <div>
-            <label className="block font-semibold mb-1 text-[#333333]">
-              Update Priority
-            </label>
-            <select
-              value={selectedReport.priority}
-              onChange={(e) =>
-                setSelectedReport({
-                  ...selectedReport,
-                  priority: e.target.value,
-                })
-              }
-              className="border border-[#FFE4B5] rounded-lg p-2 w-full"
-            >
-              <option value="Low">Low</option>
-              <option value="Medium">Medium</option>
-              <option value="High">High</option>
-            </select>
-          </div>
+              {/* Admin Uploaded Images */}
+              {selectedReport.admin_report_images?.length > 0 && (
+                <div className="mt-4">
+                  <label className="block font-semibold mb-1 text-[#333333]">
+                    Admin Uploaded Images
+                  </label>
+                  <div className="grid grid-cols-3 gap-2">
+                    {selectedReport.admin_report_images.map((img, idx) => (
+                      <div key={idx} className="relative group">
+                        <img
+                          src={img.image_url}
+                          alt={`Admin Image ${idx + 1}`}
+                          className="w-full h-24 object-cover rounded-lg border border-[#FFE4B5]"
+                        />
+                        <div className="absolute inset-0 flex items-center justify-center gap-3 bg-black/40 opacity-0 group-hover:opacity-100 transition">
+                          <button
+                            onClick={() => setImagePreview(img.image_url)}
+                            className="text-white text-xl"
+                          >
+                            👁
+                          </button>
+                          <button
+                            onClick={() => handleDeleteAdminImage(img.image_url)}
+                            className="text-red-500 text-xl"
+                          >
+                            🗑
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
-          {/* Conditionally render Department Selection & Admin Photo Upload */}
-          {["In Progress", "Resolved"].includes(selectedReport.status) && (
-            <>
-              {/* Department Selection */}
-              <div>
-                <label className="block font-semibold mb-1 text-[#333333]">
-                  Assign to Department
-                  {/* New suggested department message */}
-                  {!selectedReport.assigned_to_dept && (
-                    <span className="text-sm text-gray-500 ml-2">
-                      (Suggested: {suggestDepartment(selectedReport.issue_type)})
-                    </span>
-                  )}
-                </label>
-                <select
-                  value={selectedDept}
-                  onChange={(e) => setSelectedDept(e.target.value)}
-                  onFocus={() => setMessage("")}
-                  className="border border-[#FFE4B5] rounded-lg p-2 w-full"
-                >
-                  <option value="">Select Department</option>
-                  {departments.map((dept) => (
-                    <option key={dept} value={dept}>{dept}</option>
-                  ))}
-                </select>
-              </div>
+              <div className="mt-4 space-y-4">
+                {/* Update Status */}
+                <div>
+                  <label className="block font-semibold mb-1 text-[#333333]">
+                    Update Status
+                  </label>
+                  <select
+                    value={selectedReport.status}
+                    onChange={(e) =>
+                      setSelectedReport({
+                        ...selectedReport,
+                        status: e.target.value,
+                      })
+                    }
+                    className="border border-[#FFE4B5] rounded-lg p-2 w-full"
+                  >
+                    <option value="Pending">Pending</option>
+                    <option value="In Progress">In Progress</option>
+                    <option value="Resolved">Resolved</option>
+                    <option value="Rejected">Rejected</option>
+                  </select>
+                </div>
 
-              {/* Upload Admin Photo */}
-              <div className="mt-3">
-                <label className="block font-semibold mb-1 text-[#333333]">
-                  Upload Admin Photo
-                </label>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => {
-                    const file = e.target.files[0];
-                    if (file) handleAdminUpload(file);
-                  }}
-                  className="border border-[#FFE4B5] rounded-lg p-2 w-full"
-                />
-              </div>
-            </>
-          )}
+                {/* Admin can change priority */}
+                <div>
+                  <label className="block font-semibold mb-1 text-[#333333]">
+                    Update Priority
+                  </label>
+                  <select
+                    value={selectedReport.priority}
+                    onChange={(e) =>
+                      setSelectedReport({
+                        ...selectedReport,
+                        priority: e.target.value,
+                      })
+                    }
+                    className="border border-[#FFE4B5] rounded-lg p-2 w-full"
+                  >
+                    <option value="Low">Low</option>
+                    <option value="Medium">Medium</option>
+                    <option value="High">High</option>
+                  </select>
+                </div>
 
-          {/* Remarks are now required for rejection */}
-          {["In Progress","Rejected", "Resolved"].includes(selectedReport.status) && (
-            <div>
-              <label className="block font-semibold mb-1 text-[#333333]">
-                Remarks
-              </label>
-              <textarea
-                value={selectedReport.admin_remark || ""}
-                onChange={(e) =>
-                  setSelectedReport({
-                    ...selectedReport,
-                    admin_remark: e.target.value,
-                  })
-                }
-                className="border border-[#FFE4B5] rounded-lg p-2 w-full"
-                rows="3"
-                placeholder="Add remarks..."
-              />
-            </div>
-          )}
-        </div>
+                {/* Conditionally render Department Selection & Admin Photo Upload */}
+                {["In Progress", "Resolved"].includes(selectedReport.status) && (
+                  <>
+                    {/* Department Selection */}
+                    <div>
+                      <label className="block font-semibold mb-1 text-[#333333]">
+                        Assign to Department
+                        {/* New suggested department message */}
+                        {!selectedReport.assigned_to_dept && (
+                          <span className="text-sm text-gray-500 ml-2">
+                            (Suggested: {suggestDepartment(selectedReport.issue_type)})
+                          </span>
+                        )}
+                      </label>
+                      <select
+                        value={selectedDept}
+                        onChange={(e) => setSelectedDept(e.target.value)}
+                        onFocus={() => setMessage("")}
+                        className="border border-[#FFE4B5] rounded-lg p-2 w-full"
+                      >
+                        <option value="">Select Department</option>
+                        {departments.map((dept) => (
+                          <option key={dept} value={dept}>{dept}</option>
+                        ))}
+                      </select>
+                    </div>
 
-        {message && (
-          <p className="mt-3 text-sm text-center text-red-500">{message}</p>
-        )}
+                    {/* Upload Admin Photo */}
+                    <div className="mt-3">
+                      <label className="block font-semibold mb-1 text-[#333333]">
+                        Upload Admin Photo
+                      </label>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => {
+                          const file = e.target.files[0];
+                          if (file) handleAdminUpload(file);
+                        }}
+                        className="border border-[#FFE4B5] rounded-lg p-2 w-full"
+                      />
+                    </div>
+                  </>
+                )}
 
-        <div className="mt-6 flex justify-end gap-3">
-          <button
-            onClick={() => setSelectedReport(null)}
-            className="bg-gray-300 hover:bg-gray-400 text-black px-4 py-2 rounded-xl shadow"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={handleRejectReport}
-            className={getRejectButtonStyle(selectedReport.status)}
-          >
-            {selectedReport.status === "Rejected" ? "Confirm Rejection" : "Reject"}
-          </button>
-          <button
-            onClick={handleSaveChanges}
-            className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-xl shadow"
-          >
-            Save Changes
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-)}
+                {/* Remarks are now required for rejection */}
+                {["In Progress","Rejected", "Resolved"].includes(selectedReport.status) && (
+                  <div>
+                    <label className="block font-semibold mb-1 text-[#333333]">
+                      Remarks
+                    </label>
+                    <textarea
+                      value={selectedReport.admin_remark || ""}
+                      onChange={(e) =>
+                        setSelectedReport({
+                          ...selectedReport,
+                          admin_remark: e.target.value,
+                        })
+                      }
+                      className="border border-[#FFE4B5] rounded-lg p-2 w-full"
+                      rows="3"
+                      placeholder="Add remarks..."
+                    />
+                  </div>
+                )}
+              </div>
+
+              {message && (
+                <p className="mt-3 text-sm text-center text-red-500">{message}</p>
+              )}
+
+              <div className="mt-6 flex justify-end gap-3">
+                <button
+                  onClick={() => setSelectedReport(null)}
+                  className="bg-gray-300 hover:bg-gray-400 text-black px-4 py-2 rounded-xl shadow"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleRejectReport}
+                  className={getRejectButtonStyle(selectedReport.status)}
+                >
+                  {selectedReport.status === "Rejected" ? "Confirm Rejection" : "Reject"}
+                </button>
+                <button
+                  onClick={handleSaveChanges}
+                  className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-xl shadow"
+                >
+                  Save Changes
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {imagePreview && (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
