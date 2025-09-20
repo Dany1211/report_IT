@@ -9,7 +9,7 @@ const getStatCardStyles = (title) => {
   switch (title) {
     case "Pending":
       return {
-     bgGradient: "bg-gradient-to-br from-[#FCE6DF] to-[#F5A9A7]", // Soft red
+        bgGradient: "bg-gradient-to-br from-[#FCE6DF] to-[#F5A9A7]", // Soft red
         iconBg: "bg-[#F56565]", // Dark gray-blue for icon
       };
     case "Resolved":
@@ -19,8 +19,8 @@ const getStatCardStyles = (title) => {
       };
     case "In Progress":
       return {
-   bgGradient: "bg-gradient-to-br from-[#FFFDEB] to-[#FFF59D]", // Soft yellow
-  iconBg: "bg-[#FFDA03]",
+        bgGradient: "bg-gradient-to-br from-[#FFFDEB] to-[#FFF59D]", // Soft yellow
+        iconBg: "bg-[#FFDA03]",
       };
     case "Rejected":
       return {
@@ -145,19 +145,17 @@ export default function Reports() {
     "Parks & Facilities Management",
     "Police / Public Safety",
     "Animal Control Services",
-    "Citizen Services / General Help"
+    "Citizen Services / General Help",
   ];
 
   // Function to fetch all data
   const fetchReports = async () => {
     setIsRefreshing(true);
-    const { data, error } = await supabase
-      .from("reports")
-      .select(`
-        *,
-        report_images ( image_url ),
-        admin_report_images ( image_url, uploaded_by )
-      `);
+    const { data, error } = await supabase.from("reports").select(`
+          *,
+          report_images ( image_url ),
+          admin_report_images ( image_url, uploaded_by )
+        `);
 
     if (error) {
       console.error("❌ Error fetching reports:", error.message);
@@ -180,43 +178,45 @@ export default function Reports() {
 
   // Initial data fetch
   useEffect(() => {
-      const fetchInitialReports = async () => {
-          const { data, error } = await supabase
-            .from("reports")
-            .select(`
-              *,
-              report_images ( image_url ),
-              admin_report_images ( image_url, uploaded_by )
-            `);
+    const fetchInitialReports = async () => {
+      const { data, error } = await supabase.from("reports").select(`
+            *,
+            report_images ( image_url ),
+            admin_report_images ( image_url, uploaded_by )
+          `);
 
-          if (error) {
-            console.error("❌ Error fetching reports:", error.message);
-            // Don't set reports state if there's an error
-          } else if (data) {
-            setReports(assignPriorityByLocation(data));
-            setInitialReportCount(data.length); // Set initial count
-          }
-        };
+      if (error) {
+        console.error("❌ Error fetching reports:", error.message);
+        // Don't set reports state if there's an error
+      } else if (data) {
+        setReports(assignPriorityByLocation(data));
+        setInitialReportCount(data.length); // Set initial count
+      }
+    };
 
-        fetchInitialReports();
+    fetchInitialReports();
   }, []);
 
   // New useEffect hook to mark feedback as read when the admin views a resolved report
   useEffect(() => {
     const markFeedbackAsRead = async () => {
       // Only update if a report is selected, is resolved, and feedback hasn't been read
-      if (selectedReport && selectedReport.status === 'Resolved' && !selectedReport.feedback_read) {
+      if (
+        selectedReport &&
+        selectedReport.status === "Resolved" &&
+        !selectedReport.feedback_read
+      ) {
         const { error } = await supabase
-          .from('reports')
+          .from("reports")
           .update({ feedback_read: true })
-          .eq('id', selectedReport.id);
+          .eq("id", selectedReport.id);
 
         if (error) {
-          console.error('Error marking feedback as read:', error.message);
+          console.error("Error marking feedback as read:", error.message);
         } else {
           // Optimistically update local state to reflect the change immediately
-          setReports(prevReports =>
-            prevReports.map(r =>
+          setReports((prevReports) =>
+            prevReports.map((r) =>
               r.id === selectedReport.id ? { ...r, feedback_read: true } : r
             )
           );
@@ -229,7 +229,9 @@ export default function Reports() {
   // New useEffect to handle navigation from the Analytics page
   useEffect(() => {
     if (location.state?.reportId && reports.length > 0) {
-      const reportToSelect = reports.find(r => r.id === location.state.reportId);
+      const reportToSelect = reports.find(
+        (r) => r.id === location.state.reportId
+      );
       if (reportToSelect) {
         const index = reports.indexOf(reportToSelect);
         handleSelectReport(reportToSelect, index);
@@ -261,7 +263,7 @@ export default function Reports() {
     })
     .sort((a, b) => {
       // Sort reports based on the 'sortBy' state
-      if (sortBy === 'latest') {
+      if (sortBy === "latest") {
         return new Date(b.created_at) - new Date(a.created_at);
       }
       return new Date(a.created_at) - new Date(b.created_at);
@@ -391,7 +393,9 @@ export default function Reports() {
     if (!selectedReport) return;
     const fileName = imageUrl.split("/").pop();
 
-    await supabase.storage.from("admin-report-images").remove([`reports/${fileName}`]);
+    await supabase.storage
+      .from("admin-report-images")
+      .remove([`reports/${fileName}`]);
     await supabase
       .from("admin_report_images")
       .delete()
@@ -411,7 +415,9 @@ export default function Reports() {
   const handleSelectReport = (report, index) => {
     setSelectedReport({ ...report, sequenceId: index + 1 });
     // Use the suggested dept if no department is already assigned
-    setSelectedDept(report.assigned_to_dept || suggestDepartment(report.issue_type) || "");
+    setSelectedDept(
+      report.assigned_to_dept || suggestDepartment(report.issue_type) || ""
+    );
   };
 
   // Conditional button style for rejection
@@ -565,14 +571,14 @@ export default function Reports() {
                 <tr
                   key={report.id}
                   className={`border-t border-[#A0B0C0] transition ${
-                    report.status === 'Resolved' && !report.feedback_read
-                      ? 'bg-yellow-100 hover:bg-yellow-200'
-                      : 'hover:bg-[#F0F4F8]'
+                    report.status === "Resolved" && !report.feedback_read
+                      ? "bg-yellow-100 hover:bg-yellow-200"
+                      : "hover:bg-[#F0F4F8]"
                   }`}
                 >
                   <td className="p-3">
                     {index + 1}
-                    {report.status === 'Resolved' && !report.feedback_read && (
+                    {report.status === "Resolved" && !report.feedback_read && (
                       <span className="ml-2 text-yellow-600">🔔</span>
                     )}
                   </td>
@@ -617,15 +623,33 @@ export default function Reports() {
                 Report Details
               </h2>
               <div className="space-y-2 text-[#4A5568]">
-                <p><strong>ID:</strong> {selectedReport.sequenceId}</p>
-                <p><strong>Issue:</strong> {selectedReport.issue_type}</p>
-                <p><strong>Description:</strong> {selectedReport.description}</p>
-                <p><strong>Location:</strong> {selectedReport.location}</p>
-                <p><strong>Priority:</strong> {selectedReport.priority}</p>
-                <p><strong>Reporter:</strong> {selectedReport.reporter_name}</p>
-                <p><strong>Email:</strong> {selectedReport.reporter_email}</p>
-                <p><strong>Submitted:</strong> {selectedReport.created_at}</p>
-                <p><strong>Remarks:</strong> {selectedReport.admin_remark || "N/A"}</p>
+                <p>
+                  <strong>ID:</strong> {selectedReport.sequenceId}
+                </p>
+                <p>
+                  <strong>Issue:</strong> {selectedReport.issue_type}
+                </p>
+                <p>
+                  <strong>Description:</strong> {selectedReport.description}
+                </p>
+                <p>
+                  <strong>Location:</strong> {selectedReport.location}
+                </p>
+                <p>
+                  <strong>Priority:</strong> {selectedReport.priority}
+                </p>
+                <p>
+                  <strong>Reporter:</strong> {selectedReport.reporter_name}
+                </p>
+                <p>
+                  <strong>Email:</strong> {selectedReport.reporter_email}
+                </p>
+                <p>
+                  <strong>Submitted:</strong> {selectedReport.created_at}
+                </p>
+                <p>
+                  <strong>Remarks:</strong> {selectedReport.admin_remark || "N/A"}
+                </p>
                 <p>
                   <strong>Status:</strong>{" "}
                   <span className={getStatusStyle(selectedReport.status)}>
@@ -637,11 +661,15 @@ export default function Reports() {
 
             {/* Right Column: Images, Actions, and Forms */}
             <div className="flex-1 p-4 overflow-y-auto">
-              <h2 className="text-xl font-bold mb-4 text-[#1A202C]">Actions & Media</h2>
+              <h2 className="text-xl font-bold mb-4 text-[#1A202C]">
+                Actions & Media
+              </h2>
 
               {/* Community Feedback */}
               <div className="mt-4 space-y-2">
-                <h3 className="text-lg font-semibold text-[#1A202C]">Community Feedback</h3>
+                <h3 className="text-lg font-semibold text-[#1A202C]">
+                  Community Feedback
+                </h3>
                 <div className="flex justify-start items-center gap-4">
                   <p className="text-green-600 font-bold">
                     Affected: {selectedReport.affected_count || 0}
@@ -652,7 +680,8 @@ export default function Reports() {
                 </div>
                 {selectedReport.status === "Resolved" && (
                   <p className="mt-2">
-                    <strong>User Feedback:</strong> {selectedReport.user_feedback || "N/A"}
+                    <strong>User Feedback:</strong>{" "}
+                    {selectedReport.user_feedback || "N/A"}
                   </p>
                 )}
               </div>
@@ -785,7 +814,9 @@ export default function Reports() {
                       >
                         <option value="">Select Department</option>
                         {departments.map((dept) => (
-                          <option key={dept} value={dept}>{dept}</option>
+                          <option key={dept} value={dept}>
+                            {dept}
+                          </option>
                         ))}
                       </select>
                     </div>
@@ -809,7 +840,9 @@ export default function Reports() {
                 )}
 
                 {/* Remarks are now required for rejection */}
-                {["In Progress","Rejected", "Resolved"].includes(selectedReport.status) && (
+                {["In Progress", "Rejected", "Resolved"].includes(
+                  selectedReport.status
+                ) && (
                   <div>
                     <label className="block font-semibold mb-1 text-[#1A202C]">
                       Remarks
@@ -831,7 +864,9 @@ export default function Reports() {
               </div>
 
               {message && (
-                <p className="mt-3 text-sm text-center text-red-500">{message}</p>
+                <p className="mt-3 text-sm text-center text-red-500">
+                  {message}
+                </p>
               )}
 
               <div className="mt-6 flex justify-end gap-3">
@@ -841,12 +876,15 @@ export default function Reports() {
                 >
                   Cancel
                 </button>
-                <button
-                  onClick={handleRejectReport}
-                  className={getRejectButtonStyle(selectedReport.status)}
-                >
-                  {selectedReport.status === "Rejected" ? "Confirm Rejection" : "Reject"}
-                </button>
+                {/* The reject button will ONLY appear when "Rejected" is selected */}
+                {selectedReport.status === "Rejected" && (
+                  <button
+                    onClick={handleRejectReport}
+                    className={getRejectButtonStyle(selectedReport.status)}
+                  >
+                    Confirm Rejection
+                  </button>
+                )}
                 <button
                   onClick={handleSaveChanges}
                   className="bg-[#F56565] hover:bg-[#D64545] text-white px-4 py-2 rounded-xl shadow"
