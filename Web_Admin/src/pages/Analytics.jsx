@@ -27,8 +27,8 @@ const getStatCardStyles = (title) => {
   switch (title) {
     case "Pending Issues":
       return {
-        bgGradient: "bg-gradient-to-br from-[#E0E7FF] to-[#A9B9E7]", // Blue-gray gradient
-        iconBg: "bg-[#4A5568]", // Dark gray-blue for icon
+      bgGradient: "bg-gradient-to-br from-[#FCE6DF] to-[#F5A9A7]", // Soft red
+        iconBg: "bg-[#F56565]", // Dark gray-blue for icon
       };
     case "Resolved Issues":
       return {
@@ -37,8 +37,8 @@ const getStatCardStyles = (title) => {
       };
     case "In Progress":
       return {
-        bgGradient: "bg-gradient-to-br from-[#FCE6DF] to-[#F5A9A7]", // Soft red-orange
-        iconBg: "bg-[#F56565]",
+   bgGradient: "bg-gradient-to-br from-[#FFFDEB] to-[#FFF59D]", // Soft yellow
+  iconBg: "bg-[#FFDA03]",
       };
     case "Total Issues":
       return {
