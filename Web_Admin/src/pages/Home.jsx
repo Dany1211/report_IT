@@ -17,10 +17,10 @@ const getStatCardStyles = (title) => {
         iconBg: "bg-[#2D8C2D]",
       };
     case "In Progress":
-    return {
-  bgGradient: "bg-gradient-to-br from-[#FFFDEB] to-[#FFF59D]", // Soft yellow
-  iconBg: "bg-[#FFDA03]",
-};
+      return {
+        bgGradient: "bg-gradient-to-br from-[#FFFDEB] to-[#FFF59D]", // Soft yellow
+        iconBg: "bg-[#FFDA03]",
+      };
     case "Total Issues":
       return {
         bgGradient: "bg-gradient-to-br from-[#E2E8F0] to-[#B8C4D4]", // Primary light gray-blue
@@ -71,9 +71,9 @@ const Table = ({ data }) => (
     <table className="min-w-full text-[#4A5568]">
       <thead className="bg-[#E0E7F5]">
         <tr>
-          <th className="p-3 text-sm font-semibold">Issue</th>
-          <th className="p-3 text-sm font-semibold">Status</th>
-          <th className="p-3 text-sm font-semibold">Location</th>
+          <th className="p-3 text-sm font-semibold text-left">Issue</th>
+          <th className="p-3 text-sm font-semibold text-left">Status</th>
+          <th className="p-3 text-sm font-semibold text-left">Location</th>
         </tr>
       </thead>
       <tbody>
@@ -82,8 +82,8 @@ const Table = ({ data }) => (
             key={report.id}
             className="border-t border-[#A0B0C0] hover:bg-[#F0F4F8] transition"
           >
-            <td className="p-3 text-sm font-medium">{report.issue_type}</td>
-            <td className="p-3">
+            <td className="p-3 text-sm font-medium text-left">{report.issue_type}</td>
+            <td className="p-3 text-left">
               <span
                 className={`px-3 py-1 inline-flex text-xs font-semibold rounded-full ${getStatusColor(
                   report.status
@@ -92,7 +92,7 @@ const Table = ({ data }) => (
                 {report.status}
               </span>
             </td>
-            <td className="p-3 text-sm truncate max-w-xs">
+            <td className="p-3 text-sm truncate max-w-xs text-left">
               {report.location}
             </td>
           </tr>
