@@ -1,50 +1,50 @@
-# Welcome to your Expo app 👋
+# 📱 Report IT - Mobile Application
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+The user-facing mobile application for the **Report IT** platform. Designed for quick, efficient incident reporting and tracking.
 
-## Get started
+## ✨ Key Features
 
-1. Install dependencies
+- **Incident Reporting**: Easy-to-use form to report issues with category selection and image uploads.
+- **My Reports**: Personal dashboard to track the status and history of your submissions.
+- **Real-time Status Updates**: Get instant feedback as authorities process your reports.
+- **Secure Authentication**: User signup, login, and profile management using Supabase Auth.
+- **Modern UI**: Clean, accessible design built with React Native and NativeWind.
 
-   ```bash
-   npm install
-   ```
+## 🚀 Get Started
 
-2. Start the app
-
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+### 1. Install dependencies
 
 ```bash
-npm run reset-project
+npm install
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+### 2. Start the app
 
-## Learn more
+```bash
+npx expo start
+```
 
-To learn more about developing your project with Expo, look at the following resources:
+In the output, you'll find options to open the app in a:
+- [Expo Go](https://expo.dev/go) (Scan the QR code on your physical device)
+- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
+- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+## 🛠️ Tech Stack
 
-## Join the community
+- **Framework**: [Expo](https://expo.dev/) / [React Native](https://reactnative.dev/)
+- **Navigation**: [Expo Router](https://docs.expo.dev/router/introduction/) (File-based)
+- **Styling**: [NativeWind](https://www.nativewind.dev/) (Tailwind CSS for React Native)
+- **Backend**: [Supabase](https://supabase.com/)
+- **Icons**: [Lucide React Native](https://lucide.dev/)
 
-Join our community of developers creating universal apps.
+## 📂 Structure
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+- `app/(tabs)`: Main application views (Home, Reports, Profile).
+- `app/login.tsx` & `Signup.tsx`: Authentication screens.
+- `components`: Reusable mobile UI components.
+- `hooks`: Custom React hooks for data fetching and state.
+
+---
+
+*Part of the [Report IT](..) project.*
+
